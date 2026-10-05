@@ -1,3 +1,19 @@
+//This is sample code from driver.js that I want to possibly use for a prototype.
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+
+const driverObj = driver();
+driverObj.highlight({
+  element: "#some-element",
+  popover: {
+    title: "Title",
+    description: "Description",
+  },
+});
+
+
+
+
 <template>
   <span>Tutorial Mode {{ tooltipIndex }}/{{ anchors.length }}</span>
   <VTooltip
@@ -6,6 +22,8 @@
     position="right"
     :text="`This is a tooltip inserted programmatically by UITutor to ${tooltipAnchor}`" />
 </template>
+
+
 <script lang="ts" setup>
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { VTooltip } from "vuetify/components";
