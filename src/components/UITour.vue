@@ -1,8 +1,15 @@
 ﻿<template>
   <!-- This card sits over the easel and contains the tour menu and current instructions. -->
-  <section class="tour-box" aria-label="Guided tours">
+  <section v-if="!isMinimized" class="tour-box" aria-label="Guided tours">
     <header class="tour-header">
-      <h2>Wyatt Demo</h2> <!-- The tour panel title shown in the dark header. -->
+
+      <h2>Wyatt Demo</h2> <!-- dark header -->
+      <button
+        type="button"
+        class="minimize-button"
+        aria-label="Minimize tour menu"
+        title="Minimize tour menu"
+        @click="isMinimized = true">−</button>
     </header>
 
     <!-- Show the list of tours until the user chooses one. -->
@@ -64,13 +71,14 @@
       </footer>
     </template>
   </section>
-
-
-
+  <button
+    v-else
+    type="button"
+    class="restore-button"
+    aria-label="Open tour menu"
+    title="Open tour menu"
+    @click="isMinimized = false">Tours</button>
 </template>
-
-
-
 
 <!-- 
 
@@ -138,6 +146,7 @@ const tours: Tour[] = [
 const selectedTourId = ref <TourId | null>(null); // null means the tour menu is currently shown.
 const stepIndex = ref(0);                         // The array position of the instruction currently shown.
 const isFinished = ref(false);                    // Turns on the completion screen after the final instruction.
+const isMinimized = ref(false);                   // Hides the tour card while preserving its current tour state.
 
                                                   // Look up the full tour record from the selected id 
                                                   // null returns the view to the menu.
@@ -158,10 +167,6 @@ const finishMessage = computed(() =>
     ? "You can now choose another tour from the tour menu."
     : "Choose another tour from the tour menu when you are ready."
 );
-
-
-
-
 
 //Tooling to start, advance, and finish a tour. These functions are called from the template above.
 
@@ -282,11 +287,39 @@ const anchors = [          // Defines the ordered list of tutorial targets and t
   padding: 18px 16px;
   background: #002108;
   color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .tour-header h2 {
   margin: 0;
   font-size: 1.25rem;
+}
+
+.minimize-button,
+.restore-button {
+  border: 0;
+  background: #8ccd8f;
+  color: #102316;
+  cursor: pointer;
+  font-size: 1.25rem;
+}
+
+.minimize-button {
+  width: 32px;
+  height: 32px;
+  line-height: 1;
+}
+
+.restore-button {
+  position: absolute;
+  z-index: 20;
+  top: 4px;
+  right: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  box-shadow: 0 2px 8px #0003;
 }
 
 .tour-menu,
