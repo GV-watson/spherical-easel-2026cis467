@@ -15,6 +15,9 @@ Calling the functions in UIFunctions.vue
 import { ref } from "vue";
 import UIFunctions from "./UIFunctions.vue";
 
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+
 
 const isOpen = ref(false); // Controls whether the Tour tab is visible.
 const searchText = ref(""); // Search text for the Tour search bar.
@@ -31,6 +34,87 @@ function selectTour(tourId: string): void {
   // Call the appropriate function from UIFunctions
 }
 
+// Sample tour for createPoint
+function createPointTour(): void {
+  const driverObj = driver({
+    showProgress: true,
+    steps: [
+      { element: '.mdi-tools', 
+        popover: {
+          title: 'Tools Category',
+          description: 'Click here to go to the Tools category (if not already).',
+        },
+      },
+      { element: '#BasicTools',
+        popover: {
+          title: 'Basic Tools',
+          description: 'Click here to open the Basic Tools section.',
+        },
+      },
+      {
+        element: '.v-card:has(svg[aria-labelledby="point"])',
+        popover: {
+          title: 'Create Point',
+          description: 'Click to select the Create Point Tool.',
+        },
+      },
+      {
+        element: '#sphereContainer',
+        popover: {
+          title: 'Sphere Canvas',
+          description: 'Place the point anywhere within the circle.\nYou have created a point!'
+        },
+      },
+    ],
+  });
+  driverObj.drive();
+  
+};
+
+function rotateSphereTour(): void {
+  const driverObj = driver({
+    showProgress: true,
+    steps: [
+      {
+        element: '#app',
+        popover: {
+          title: 'Tour Prerequisite',
+          description: 'This tour requires you to have an object on the sphere. Please create one now. If you do not know how, please check the "Create Point" tour.',
+        },
+      },
+      {
+        element: '.mdi-tools', 
+        popover: {
+          title: 'Tools Category',
+          description: 'Click here to go to the Tools category (if not already).',
+        },
+      },
+      {
+        element: '#DisplayTools',
+        popover: {
+          title: 'Display Tools Category',
+          description: 'Click here to enter the Display Tools category.',
+        },
+      },
+      {
+        element: '.toolbutton:has(.mdi-rotate-3d-variant)',
+        popover: {
+          title: 'Rotate Sphere Button',
+          description: 'Click here to select the Rotate Sphere Button.',
+        },
+      },
+      {
+        element: '#sphereContainer',
+        popover: {
+          title: 'Sphere Canvas',
+          description: 'Click and drag anywhere on the canvas to rotate the sphere! Clicking and letting go with velocity will make the sphere spin! Have fun!',
+        }, 
+      },
+    ],
+  });
+  driverObj.drive();
+  
+}
 
 // Search functionality will be added later
 function searchTours(): void {
@@ -114,14 +198,14 @@ function scrollTours(direction: "up" | "down"): void {
         <button
           type="button"
           class="tour-choice"
-          @click="selectTour('createPoint')">
+          @click="createPointTour">
           Create a Point
         </button>
 
         <button
           type="button"
           class="tour-choice"
-          @click="selectTour('rotateSphere')">
+          @click="rotateSphereTour">
           Rotate Sphere
         </button>
 
