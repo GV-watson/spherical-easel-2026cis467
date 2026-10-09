@@ -53,6 +53,7 @@ function createPointTour(): void {
       },
       {
         element: '.v-card:has(svg[aria-labelledby="point"])',
+        advanceOnClick: true,
         popover: {
           title: 'Create Point',
           description: 'Click to select the Create Point Tool.',
