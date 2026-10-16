@@ -53,6 +53,7 @@ function createPointTour(): void {
       },
       {
         element: '[data-tour="bu-point"]',
+        advanceOnClick: true,
         popover: {
           title: 'Create Point',
           description: 'Click to select the Create Point Tool.',
