@@ -5,6 +5,7 @@
       <v-expansion-panels
         v-model="panels"
         multiple
+        data-tour="gr-expression"
         :style="{ gap: '8px', paddingRight: '8px', zIndex: 10 }">
         <v-expansion-panel>
           <v-expansion-panel-title>

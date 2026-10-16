@@ -39,20 +39,20 @@ function createPointTour(): void {
   const driverObj = driver({
     showProgress: true,
     steps: [
-      { element: '.mdi-tools', 
+      { element: '[data-tour="ta-tools"]', 
         popover: {
           title: 'Tools Category',
           description: 'Click here to go to the Tools category (if not already).',
         },
       },
-      { element: '#BasicTools',
+      { element: '[data-tour="gr-BasicTools"]',
         popover: {
           title: 'Basic Tools',
           description: 'Click here to open the Basic Tools section.',
         },
       },
       {
-        element: '.v-card:has(svg[aria-labelledby="point"])',
+        element: '[data-tour="bu-point"]',
         popover: {
           title: 'Create Point',
           description: 'Click to select the Create Point Tool.',

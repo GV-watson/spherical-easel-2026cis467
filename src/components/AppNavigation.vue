@@ -42,16 +42,19 @@
         nav
         active-class="active">
         <v-list-item
+          data-tour="ta-tools"
           @click="setHover"
           prepend-icon="$toolsTab"
           title="Tools"
           value="tools"></v-list-item>
         <v-list-item
+          data-tour="ta-obj"
           @click="setHover"
           prepend-icon="$objectsTab"
           title="Objects"
           value="objects"></v-list-item>
         <v-list-item
+          data-tour="ta-construction"
           @click="setHover"
           prepend-icon="$constructionsTab"
           title="Construction"

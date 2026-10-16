@@ -24,6 +24,7 @@
     @update:model-value="toolSelectionChanged">
     <v-expansion-panels class="pr-2" v-model="expandedPanel">
       <v-expansion-panel
+        :data-tour="'gr-' + grp.group"
         :id="grp.group"
         v-for="grp in buttonGroup"
         :key="grp.group"
@@ -54,6 +55,7 @@
               :value="btn.action"
               :key="btn.action">
               <ToolButton
+                :data-tour="'bu-' + btn.action"
                 :button="btn"
                 :selected="isSelected!"
                 @click="toggle"

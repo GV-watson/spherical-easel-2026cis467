@@ -75,6 +75,7 @@
     </v-expansion-panel>
     <v-expansion-panel
       value="public"
+      data-tour="bu-publicConstructions"
       data-testid="publicPanel"
       v-if="!selectedVisible && filteredPublicConstructions.length > 0">
       <v-expansion-panel-title>
