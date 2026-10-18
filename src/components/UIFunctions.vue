@@ -10,26 +10,99 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 
 
+//******************************************************* */  watching for click and object creation
+import { watch } from "vue"; 
+import { useSEStore } from "@/stores/se"; 
+
 // The steps of a tour, including the element to highlight and the popover content.
 type TourStep = {
   element: string;
   title: string;
   description: string;
+  advanceOnClick?: boolean;
+  waitFor?: "click" | "segment-created"
 };
 
-// Called by UITour.vue when a tour button is selected.
 function selectTour(tourId: string): void {
-  if (!(tourId in tourDefinitions)) {
-    console.warn(`Unknown tour: ${tourId}`);
-    return;
-  }
+  const selectedTour = tourDefinitions[tourId as TourId];
+  if (!selectedTour) return;
 
-  const steps = tourDefinitions[tourId as TourId].map((step) => ({
+  const seStore = useSEStore();
+  let cleanupStep: (() => void) | undefined;
+  let driverObj: ReturnType<typeof driver>;
+
+  const steps = selectedTour.map(step => ({
     element: step.element,
     popover: {
       title: step.title,
       description: step.description,
     },
+
+    onHighlighted: (element?: Element) => {
+      cleanupStep?.();
+      cleanupStep = undefined;
+
+      if (!element) {
+        return;
+      }
+
+      if (step.waitFor === "click") {
+        const handleClick = () => driverObj.moveNext();
+        element.addEventListener("click", handleClick, { once: true });
+        cleanupStep = () =>
+          element.removeEventListener("click", handleClick);
+      }
+
+      if (step.waitFor === "segment-created") {
+        const startingCount = seStore.seSegments.length;
+        const stopWatching = watch(
+          () => seStore.seSegments.length,
+          currentCount => {
+            if (currentCount > startingCount) {
+              stopWatching();
+              cleanupStep = undefined;
+              driverObj.moveNext();
+            }
+          },
+        );
+        cleanupStep = stopWatching;
+      }
+    },
+
+    onDeselected: () => {
+      cleanupStep?.();
+      cleanupStep = undefined;
+    },
+  }));
+
+  driverObj = driver({
+    showProgress: true,
+    steps,
+  });
+
+  driverObj.drive();
+}
+
+
+//******************************************************* 
+
+
+/* Called by UITour.vue when a tour button is selected.
+function selectTour(tourId: string): void {
+  if (!Object.hasOwn(tourDefinitions, tourId)) {
+    console.warn(`Unknown tour: ${tourId}`);
+    return;
+  }
+
+  const selectedTour = tourDefinitions[tourId as TourId];
+
+  const steps = selectedTour.map((step) => ({
+    element: step.element,
+    popover: {
+      title: step.title,
+      description: step.description,
+    },
+    ...(step.advanceOnClick ? { onNextClick: () => driverObj.moveNext() } : {}),
   }));
 
   const driverObj = driver({
@@ -39,6 +112,7 @@ function selectTour(tourId: string): void {
 
   driverObj.drive();
 }
+  */
 
 // Search filtering is currently owned by UITour.vue. This function is exposed
 // so the parent and child are connected; it can be expanded later if needed.
@@ -52,14 +126,10 @@ defineExpose({ selectTour, searchTours });
 
 
 
-
-
-
-
 // The tour definitions are stored in a separate component to keep the logic organized and maintainable. 
 // Each tour consists of a series of steps, each with an element to highlight and a popover with a title and description. 
 // The selectTour function is called by UITour.vue when a tour button is clicked, 
-// and it uses the driver.js library to display the tour steps.
+// and it uses the driver.js library to display the tour.
 type TourId = "createPoint" | "rotateSphere" | "createSegment" | "createCircle"; // $$$$ Step 1 create an ID $$$$
 
 
@@ -68,24 +138,25 @@ const tourDefinitions: Record<TourId, TourStep[]> = { // $$$$ Step 2 record of t
 
   createPoint: [
     {
-      element: ".mdi-tools",
+      element: '[data-tour="ta-tools"]',
       title: "Tools Category",
-      description: "Click here to open the Tools category if it is not already selected.",
+      description: "Click here to go to the Tools category (if not already).",
     },
     {
-      element: "#BasicTools",
+      element: '[data-tour="gr-BasicTools"]',
       title: "Basic Tools",
-      description: "Open the Basic Tools section.",
+      description: "Click here to open the Basic Tools section.",
     },
     {
-      element: '.v-card:has(svg[aria-labelledby="point"])',
+      element: '[data-tour="bu-point"]',
       title: "Create Point",
-      description: "Select the Create Point tool.",
+      description: "Click to select the Create Point Tool.",
+      advanceOnClick: true,
     },
     {
       element: "#sphereContainer",
       title: "Sphere Canvas",
-      description: "Click anywhere on the sphere to place a point. You have created a point!",
+      description: "Place the point anywhere within the circle.\nYou have created a point!",
     },
   ],
 
@@ -93,69 +164,71 @@ const tourDefinitions: Record<TourId, TourStep[]> = { // $$$$ Step 2 record of t
     {
       element: "#app",
       title: "Tour Prerequisite",
-      description: 'This tour works best if you already have an object on the sphere. If needed, complete the "Create a Point" tour first.',
+      description: 'This tour requires you to have an object on the sphere. Please create one now. If you do not know how, please check the "Create Point" tour.',
     },
     {
-      element: ".mdi-tools",
+      element: '[data-tour="ta-tools"]',
       title: "Tools Category",
-      description: "Open the Tools category if it is not already selected.",
+      description: "Click here to go to the Tools category (if not already).",
     },
     {
-      element: "#DisplayTools",
-      title: "Display Tools",
-      description: "Open the Display Tools category.",
+      element: '[data-tour="gr-DisplayTools"]',
+      title: "Display Tools Category",
+      description: "Click here to enter the Display Tools category.",
     },
     {
-      element: ".toolbutton:has(.mdi-rotate-3d-variant)",
+      element: '[data-tour="bu-rotate"]',
       title: "Rotate Sphere Button",
-      description: "Select the Rotate Sphere tool.",
+      description: "Click here to select the Rotate Sphere Button.",
     },
     {
       element: "#sphereContainer",
       title: "Sphere Canvas",
-      description: "Click and drag on the canvas to rotate the sphere. A quick drag and release can make it continue spinning.",
+      description: "Click and drag anywhere on the canvas to rotate the sphere! Clicking and letting go with velocity will make the sphere spin! Have fun!",
     },
   ],
 
   createSegment: [
     {
-      element: ".mdi-tools",
+      element: '[data-tour="ta-tools"]',
       title: "Tools Category",
       description: "Open the Tools category if it is not already selected.",
     },
     {
-      element: "#BasicTools",
+      element: '[data-tour="gr-BasicTools"]',
       title: "Basic Tools",
       description: "Open the Basic Tools section.",
     },
     {
-      element: '.v-card:has(svg[aria-labelledby="segment"])',
-      title: "Create Segment",
-      description: "Select the Create Segment tool. If this selector does not match your app's markup, update it to the segment tool's actual selector.",
-    },
-    {
-      element: "#sphereContainer",
-      title: "Sphere Canvas",
-      description: "Click two locations on the sphere to create a line segment. You can also click and drag from the first location to the second.",
-    },
+  element: '[data-tour="bu-segment"]',
+  title: "Create Segment",
+  description: "Click to select the segment tool.",
+  waitFor: "click", // Wait for the user to click the segment tool button before proceeding to the next step.
+},
+{
+  element: "#sphereContainer",
+  title: "Create a segment",
+  description: "Click two points on the sphere to create a segment.",
+  waitFor: "segment-created", // Wait for the user to create a segment before proceeding to the next step.
+},
   ],
   
 
   createCircle: [
     {
-      element: ".mdi-tools",
+      element: '[data-tour="ta-tools"]',
       title: "Tools Category",
       description: "Open the Tools category if it is not already selected.",
     },
     {
-      element: "#BasicTools",
+      element: '[data-tour="gr-BasicTools"]',
       title: "Basic Tools",
       description: "Open the Basic Tools section.",
     },
     {
-      element: '.v-card:has(svg[aria-labelledby="circle"])',
+      element: '[data-tour="bu-circle"]',
       title: "Create Circle",
-      description: "Select the Create Circle tool. If this selector does not match your app's markup, update it to the circle tool's actual selector.",
+      description: "Select the Create Circle tool.",
     },
     {
       element: "#sphereContainer",
