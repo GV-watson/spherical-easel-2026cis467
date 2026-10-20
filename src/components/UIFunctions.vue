@@ -10,15 +10,150 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 
 
+//******************************************************* */  Driver.js watching for click and object creation
+import { watch } from "vue"; 
+import { useSEStore } from "@/stores/se";
+
 // The steps of a tour, including the element to highlight and the popover content.
 type TourStep = {
   element: string;
   title: string;
   description: string;
   advanceOnClick?: boolean;
+  waitFor?: 
+  "click" | //done
+  "get-point" |  
+
+  "measure-segment" |
+  "point-created" | 
+  "sphere-rotated" |
+  "segment-created" | //done ?
+
+  "alt-segment-created" |
+  "behind-sphere-point-created" |
+  "longer-than-Pi-tour" |
+
+  "circle-created" |
+  "alt-circle-created" |
+
+  "object-moved" |
+  "line-segment-measured" |
+  "measurement-units-changed" |
+
+  "right-triangle-created" |
+  "equilateral-triangle-created"
+  ; 
+  
 };
 
-// Called by UITour.vue when a tour button is selected.
+
+//selectTour takes a tour ID, finds its definition, 
+// and converts each step into the format Driver.js expects. 
+// It also sets up any click listeners or Pinia watchers required by the step’s waitFor condition. 
+// Once the steps are ready, it starts the tour.
+function selectTour(tourId: string): void {
+  // Look up the requested tour's step definitions.
+  // The cast tells TypeScript to treat this string as one of the known TourId values.
+  const selectedTour = tourDefinitions[tourId as TourId];
+
+  if (!selectedTour) return;  // Stop if the ID doesn't match a defined tour.
+
+  const seStore = useSEStore();   // Get the Pinia store so a tour step can observe created objects.
+  // const { seSegments } = storeToRefs(useSEStore()); //could make that dependency more explicit
+
+
+  // Holds the cleanup function for the current step's click listener or store watcher.
+  let cleanupStep: (() => void) | undefined;
+
+  // Declared here so callbacks below can use the Driver.js instance after it is created.
+  let driverObj: ReturnType<typeof driver>;
+
+  // Convert this tour's step definitions into the format Driver.js expects.
+  const steps = selectedTour.map(step => ({
+
+    // CSS selector for the page element Driver.js highlights.
+    element: step.element,
+
+    // Text shown in the Driver.js popover.
+    popover: {
+      title: step.title,
+      description: step.description,
+    },
+
+    // Runs when Driver.js highlights this step.
+    onHighlighted: (element?: Element) => {
+
+      // Remove the previous step's listener if one is still active.
+      cleanupStep?.();
+      cleanupStep = undefined;
+
+      // There may be no matching element on the page
+      // don't set up detection in that case.
+      if (!element) {
+        return;
+      }
+
+      //////// For a click step, advance when the highlighted element is clicked.
+      if (step.waitFor === "click") {
+        const handleClick = () => driverObj.moveNext();
+        // { once: true } makes the browser remove the listener after its first click.
+        element.addEventListener("click", handleClick, { once: true });
+        // Save a cleanup function in case the user leaves this step before clicking.
+        cleanupStep = () => element.removeEventListener("click", handleClick);
+      }
+
+      //////// For a segment-creation step, advance when the segment collection grows.
+      if (step.waitFor === "segment-created") {
+        // Capture how many segments existed when this step began.
+        const startingCount = seStore.seSegments.length;
+        // Watch the reactive Pinia collection for a new segment.
+        const stopWatching = watch(
+          () => seStore.seSegments.length,
+          currentCount => {
+            // A larger count means at least one segment was added.
+            if (currentCount > startingCount) {
+              stopWatching(); // Stop watching after the condition succeeds.
+              cleanupStep = undefined;
+              driverObj.moveNext(); // Advance to the next tour step.
+            }
+          },
+        );
+
+        // Save the watcher's stop function to clean it up if this step is left early.
+        cleanupStep = stopWatching;
+      }
+
+    
+
+
+
+    },//End onhighlight
+
+    //////// Runs when the user leaves this step, including when advancing.
+    onDeselected: () => {
+      // Prevent an old listener or watcher from triggering after this step ends.
+      cleanupStep?.();
+      cleanupStep = undefined;
+    },
+
+
+
+  }));
+
+  // Create the Driver.js tour using the converted steps.
+  driverObj = driver({
+    showProgress: true, // Show the step counter/progress indicator.
+    steps,
+  });
+
+  // Start the tour.
+  driverObj.drive();
+}
+
+//******************************************************* 
+
+
+/* Called by UITour.vue when a tour button is selected.
 function selectTour(tourId: string): void {
   if (!Object.hasOwn(tourDefinitions, tourId)) {
     console.warn(`Unknown tour: ${tourId}`);
@@ -43,6 +178,7 @@ function selectTour(tourId: string): void {
 
   driverObj.drive();
 }
+  */
 
 // Search filtering is currently owned by UITour.vue. This function is exposed
 // so the parent and child are connected; it can be expanded later if needed.
@@ -55,18 +191,14 @@ function searchTours(query: string): void {
 defineExpose({ selectTour, searchTours }); 
 
 
-
-
-
 // The tour definitions are stored in a separate component to keep the logic organized and maintainable. 
 // Each tour consists of a series of steps, each with an element to highlight and a popover with a title and description. 
 // The selectTour function is called by UITour.vue when a tour button is clicked, 
 // and it uses the driver.js library to display the tour.
-type TourId = "createPoint" | "rotateSphere" | "createSegment" | "createCircle"; // $$$$ Step 1 create an ID $$$$
-
+type TourId = "createPoint" | "rotateSphere" | "createSegment" | "createCircle"; 
 
 // The tour definitions are stored in a separate component to keep the logic organized and maintainable. //////////
-const tourDefinitions: Record<TourId, TourStep[]> = { // $$$$ Step 2 record of tour steps $$$$
+const tourDefinitions: Record<TourId, TourStep[]> = { 
 
   createPoint: [
     {
@@ -125,23 +257,29 @@ const tourDefinitions: Record<TourId, TourStep[]> = { // $$$$ Step 2 record of t
       element: '[data-tour="ta-tools"]',
       title: "Tools Category",
       description: "Open the Tools category if it is not already selected.",
+      waitFor: "click", // Wait for the user to click the segment tool button before proceeding to the next step.
+
     },
     {
       element: '[data-tour="gr-BasicTools"]',
       title: "Basic Tools",
       description: "Open the Basic Tools section.",
+      waitFor: "click", // Wait for the user to click the segment tool button before proceeding to the next step.
+
     },
     {
       element: '[data-tour="bu-segment"]',
       title: "Create Segment",
-      description: "Select the Create Line Segment tool.",
+      description: "Click to select the segment tool.",
+      waitFor: "click", // Wait for the user to click the segment tool button before proceeding to the next step.
     },
     {
       element: "#sphereContainer",
-      title: "Sphere Canvas",
-      description: "Click two locations on the sphere to create a line segment. You can also click and drag from the first location to the second.",
+      title: "Create a segment",
+      description: "Click two points on the sphere to create a segment.",
+      waitFor: "segment-created", // Wait for the user to create a segment before proceeding to the next step.
     },
-  ],
+    ],
   
 
   createCircle: [
