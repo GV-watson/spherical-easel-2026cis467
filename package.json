@@ -26,6 +26,7 @@
     "camera-controls": "^2.10.1",
     "color": "^4.2.3",
     "detect-browser": "^5.2.0",
+    "driver.js": "^1.9.0",
     "file-saver": "^2.0.5",
     "firebase": "~10.8.0",
     "gif.js": "^0.2.0",
