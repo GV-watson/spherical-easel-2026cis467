@@ -1,3 +1,4 @@
+
 ﻿<template>
   <!-- Mount the logic component so its exposed functions are available. -->
   <UIFunctions ref="uiFunctions" />
@@ -104,7 +105,6 @@ function closeTourTab(): void { isOpen.value = false; } // Called by the close b
 function selectTour(tourId: string): void { uiFunctions.value?.selectTour(tourId); } // Called by the tour buttons to start a tour.
 
 function searchTours(): void { uiFunctions.value?.searchTours(searchText.value); } // Passes the search text to UIFunctions.vue.
-
 
 </script>
 
