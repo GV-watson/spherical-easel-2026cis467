@@ -252,9 +252,23 @@ function selectTour(tourId: string): void {
         cleanupStep = stopWatching;
       }
 
-
-
-
+      // For an alt circle step, advance when a new circle is created.
+      if (step.waitFor === "alt-circle-created") {
+        // Remember how many circles existed when this step began.
+        const startingCircleCount = seStore.seCircles.length;
+        const stopWatching = watch(
+          () => seStore.seCircles.length,
+          currentCount => {
+            // A larger count means a circle was added.
+            if (currentCount > startingCircleCount) {
+              stopWatching();
+              cleanupStep = undefined;
+              driverObj.moveNext();
+            }
+          },
+        );
+        cleanupStep = stopWatching;
+      }
 
     },//End onhighlight
 
@@ -461,9 +475,30 @@ const tourDefinitions: Record<TourId, TourStep[]> = {
 
   // Alternate way to create a circle using click and drag.
   createAltCircle: [
-    // TODO: Activate the Circle tool.
-    // TODO: Click and drag to create the circle.
-    // TODO: Wait for "alt-circle-created".
+    {
+      element: '[data-tour="ta-tools"]',
+      title: "Tools Category",
+      description: "Open the Tools category if it is not already selected.",
+      waitFor: "click",
+    },
+    {
+      element: '[data-tour="gr-BasicTools"]',
+      title: "Basic Tools",
+      description: "Open the Basic Tools section.",
+      waitFor: "click",
+    },
+    {
+      element: '[data-tour="bu-circle"]',
+      title: "Create Circle",
+      description: "Select the Create Circle tool.",
+      waitFor: "click",
+    },
+    {
+      element: "#sphereContainer",
+      title: "Click and Drag",
+      description: "Click where the center of the circle should be, drag to a second location, then release.",
+      waitFor: "alt-circle-created",
+    },
   ],
 
   // Move an existing geometric object.
@@ -476,10 +511,36 @@ const tourDefinitions: Record<TourId, TourStep[]> = {
 
   // Measure the length of a line segment.
   measureSegment: [
-    // TODO: Create or require an existing segment.
-    // TODO: Activate the Line Segment Length tool.
-    // TODO: Select the segment to measure.
-    // TODO: Wait for "line-segment-measured".
+    {
+      element: "#app",
+      title: "Tour Prerequisite",
+      description: 'This tour needs a line segment on the sphere. If you do not have one, please check the "Create a Line Segment" tour first.',
+      waitFor: "click",
+    },
+    {
+      element: '[data-tour="ta-tools"]',
+      title: "Tools Category",
+      description: "Open the Tools category if it is not already selected.",
+      waitFor: "click",
+    },
+    {
+      element: '[data-tour="gr-MeasurementTools"]',
+      title: "Measurement Tools",
+      description: "Open the Measurement Tools section.",
+      waitFor: "click",
+    },
+    {
+      element: '[data-tour="bu-segmentLength"]',
+      title: "Line Segment Length",
+      description: "Select the Line Segment Length tool.",
+      waitFor: "click",
+    },
+    {
+      element: "#sphereContainer",
+      title: "Measure a Segment",
+      description: "Click an existing line segment to measure it.",
+      waitFor: "measure-segment",
+    },
   ],
 
   // Change the units of an existing measurement.
