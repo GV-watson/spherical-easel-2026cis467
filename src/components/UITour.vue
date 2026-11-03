@@ -1,5 +1,4 @@
-
-﻿<template>
+<template>
   <!-- Mount the logic component so its exposed functions are available. -->
   <UIFunctions ref="uiFunctions" />
 
@@ -84,6 +83,8 @@ const tours = [
   { id: "rotateSphere", label: "Rotate Sphere" },
   { id: "createSegment", label: "Create a Line Segment" },
   { id: "createCircle", label: "Create a Circle" },
+  { id: "createAltCircle", label: "Create a Circle (Click and Drag)" },
+  { id: "measureSegment", label: "Measure a Line Segment" },
 ];
 
 // Filter the tour buttons based on the text entered in the search input.
