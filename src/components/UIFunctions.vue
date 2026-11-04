@@ -185,9 +185,51 @@ function selectTour(tourId: string): void {
               // TODO: Detect when the user selects a segment to measure.
             }
 
+            //////// For a point-creation step, advance when a point is created.
+            if (step.waitFor === "point-created") {
+              // TODO: Detect when a new point is created.
+            }
+
+            if (step.waitFor === "measure-segment") {
+              // TODO: Detect when the user selects a segment to measure.
+            }
+
             //////// For a back-of-sphere point step, advance when the point is created.
             if (step.waitFor === "behind-sphere-point-created") {
-              // TODO: Detect when a point is created on the back of the sphere.
+              // Creates a variable to detect when the user is holding the shift key
+              let isShiftHeld = false;
+              const handleKeyDown = (event: KeyboardEvent) => {
+                if (event.key === "Shift") {
+                  isShiftHeld = true;
+                }
+              };
+              const handleKeyUp = (event: KeyboardEvent) => {
+                if (event.key === "Shift") {
+                  isShiftHeld = false;
+                }
+              };
+              // Capture how many points existed when this step began.
+              let startingCount = seStore.sePoints.length;
+              // Watch the reactive Pinia collection for a new point.
+              const stopWatching = watch(
+              () => seStore.sePoints.length,
+              currentCount => {
+              // A larger count means at least one point was added.
+              if (currentCount > startingCount) {
+                if (isShiftHeld === true) {
+                  // if the user holds shift while creating the tour will move to the next step
+                  document.removeEventListener("keydown", handleKeyDown);
+                  document.removeEventListener("keyup", handleKeyUp);
+                  stopWatching();
+                  cleanupStep = undefined;
+                  driverObj.moveNext();
+                  }
+                } else {
+                    // if the user creates a point without pressing shift this will update the count and keep waiting
+                    startingCount++;
+                }
+            },
+          );
             }
 
             //////// For a segment step using click and drag, advance when the segment is created.
@@ -447,9 +489,32 @@ const tourDefinitions: Record<TourId, TourStep[]> = {
 
   // Create a point on the back of the sphere.
   createBehindSpherePoint: [
-    // TODO: Activate the Point tool.
-    // TODO: Hold Shift and click on the sphere.
-    // TODO: Wait for "behind-sphere-point-created".
+    {
+      element: '[data-tour="ta-tools"]',
+      title: "Tools Category",
+      description: "Open the Tools category if it is not already selected.",
+      waitFor: "click", 
+
+    },
+    {
+      element: '[data-tour="gr-BasicTools"]',
+      title: "Basic Tools",
+      description: "Open the Basic Tools section.",
+      waitFor: "click", 
+    },
+    {
+      element: '[data-tour="bu-point"]',
+      title: "Create Point",
+      description: "Click to select the Create Point Tool.",
+      waitFor: "click", 
+
+    },
+    {
+      element: "#sphereContainer",
+      title: "Create Point Behind Sphere",
+      description: "Hold shift while clicking on the canvas to create a point behind the sphere.",
+      waitFor: "behind-sphere-point-created",
+    },
   ],
 
   // Create a segment with a length greater than Pi.
