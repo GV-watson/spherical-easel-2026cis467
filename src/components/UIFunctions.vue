@@ -175,76 +175,6 @@ function selectTour(tourId: string): void {
               cleanupStep = undefined;
               driverObj.moveNext(); // Advance to the next tour step.
             }
-
-            //////// For a point-creation step, advance when a point is created.
-            if (step.waitFor === "point-created") {
-              // TODO: Detect when a new point is created.
-            }
-
-            if (step.waitFor === "measure-segment") {
-              // TODO: Detect when the user selects a segment to measure.
-            }
-
-            //////// For a back-of-sphere point step, advance when the point is created.
-            if (step.waitFor === "behind-sphere-point-created") {
-              // TODO: Detect when a point is created on the back of the sphere.
-            }
-
-            //////// For a segment step using click and drag, advance when the segment is created.
-            if (step.waitFor === "alt-segment-created") {
-              // TODO: Detect when a segment is created using click and drag.
-            }
-
-            //////// For a segment longer than Pi, advance when the segment is created.
-            if (step.waitFor === "longer-than-Pi-tour") {
-              // TODO: Detect when a segment longer than Pi is created.
-            }
-
-            //////// For a circle-creation step, advance when a circle is created.
-            if (step.waitFor === "circle-created") {
-              // TODO: Detect when a new circle is created.
-            }
-
-            //////// For a circle step using click and drag, advance when the circle is created.
-            if (step.waitFor === "alt-circle-created") {
-              // TODO: Detect when a circle is created using click and drag.
-            }
-
-            //////// For a sphere-rotation step, advance when the sphere is rotated.
-            if (step.waitFor === "sphere-rotated") {
-              // TODO: Detect when the sphere is rotated.
-            }
-
-            //////// For an object-movement step, advance when an object is moved.
-            if (step.waitFor === "object-moved") {
-              // TODO: Detect when an existing object is moved.
-            }
-
-            //////// For a measurement step, advance when the segment is measured.
-
-
-            //////// For a line-segment measurement, advance when the measurement is created.
-            if (step.waitFor === "line-segment-measured") {
-              // TODO: Detect when a line segment measurement is created.
-            }
-
-            //////// For a measurement-units step, advance when the units are changed.
-            if (step.waitFor === "measurement-units-changed") {
-              // TODO: Detect when the measurement units are changed.
-            }
-
-            //////// For a right-triangle step, advance when the triangle is completed.
-            if (step.waitFor === "right-triangle-created") {
-              // TODO: Detect when the right triangle is completed.
-            }
-
-            //////// For an equilateral-triangle step, advance when the triangle is completed.
-            if (step.waitFor === "equilateral-triangle-created") {
-              // TODO: Detect when the equilateral triangle is completed.
-            }
-
-            //////// For a point-selection step, advance when the user selects a point.
-
           },
         );
 
@@ -252,8 +182,172 @@ function selectTour(tourId: string): void {
         cleanupStep = stopWatching;
       }
 
+      //////// For a point-creation step, advance when a point is created.
+      if (step.waitFor === "point-created") {
+        // TODO: Detect when a new point is created.
+      }
+
+      if (step.waitFor === "measure-segment") {
+        // TODO: Detect when the user selects a segment to measure.
+      }
+
+      //////// For a back-of-sphere point step, advance when the point is created.
+      if (step.waitFor === "behind-sphere-point-created") {
+        // TODO: Detect when a point is created on the back of the sphere.
+      }
+
+      //////// For a segment step using click and drag, advance when the segment is created.
+      if (step.waitFor === "alt-segment-created") {
+        // TODO: Detect when a segment is created using click and drag.
+      }
+
+      //////// For a circle-creation step, advance when a circle is created.
+      if (step.waitFor === "circle-created") {
+        // TODO: Detect when a new circle is created.
+      }
+
+      //////// For a circle step using click and drag, advance when the circle is created.
+      if (step.waitFor === "alt-circle-created") {
+        // TODO: Detect when a circle is created using click and drag.
+      }
+
+      //////// For a sphere-rotation step, advance when the sphere is rotated.
+      if (step.waitFor === "sphere-rotated") {
+        // TODO: Detect when the sphere is rotated.
+      }
+
+      //////// For an object-movement step, advance when an object is moved.
+      if (step.waitFor === "object-moved") {
+        // Take into account all the objects that are on the canvas and their positions. 
+        // Uses stringify from JSON to make it string comparable. 
+        const snapshotObjectPositions = (): string =>
+          JSON.stringify([
+            ...seStore.sePoints.map(point => [
+              "point",
+              point.id,
+              point.locationVector.x,
+              point.locationVector.y,
+              point.locationVector.z,
+            ]),
+            ...seStore.seLines.map(line => [
+              "line",
+              line.id,
+              line.normalVector.x,
+              line.normalVector.y,
+              line.normalVector.z,
+            ]),
+            ...seStore.seSegments.map(segment => [
+              "segment",
+              segment.id,
+              segment.normalVector.x,
+              segment.normalVector.y,
+              segment.normalVector.z,
+              segment.arcLength,
+            ]),
+            ...seStore.seLabels.map(label => [
+              "label",
+              label.id,
+              label.locationVector.x,
+              label.locationVector.y,
+              label.locationVector.z,
+            ]),
+            ...seStore.seTexts.map(text => [
+              "text",
+              text.id,
+              text.locationVector.x,
+              text.locationVector.y,
+            ]),
+          ]);
+
+        let startingPositions: string | undefined;
+        let startingSphereRotation: string | undefined;
+        
+        // When the mouse is pressed down, begin the snapshot.
+        const handleMouseDown = () => {
+          startingPositions = snapshotObjectPositions();
+          startingSphereRotation =
+            seStore.inverseTotalRotationMatrix.elements.join(",");
+        };
+        
+        // When the mouse button is released, finish the snapshot. 
+        const handleMouseUp = () => {
+          // Check to see if anything went wrong during the snapshots, and checks for sphere rotation
+          if (
+            startingPositions !== undefined &&
+            startingPositions !== snapshotObjectPositions() &&
+            startingSphereRotation ===
+              seStore.inverseTotalRotationMatrix.elements.join(",")
+          ) { 
+            cleanupStep?.();  // Remove mouse listener
+            cleanupStep = undefined; // Clean up
+            driverObj.moveNext();   // Move to next step. 
+          }
+          // Clean up snapshots.
+          startingPositions = undefined;
+          startingSphereRotation = undefined;
+        };
+
+        element.addEventListener("mousedown", handleMouseDown);
+        window.addEventListener("mouseup", handleMouseUp);
+        cleanupStep = () => {
+          element.removeEventListener("mousedown", handleMouseDown);
+          window.removeEventListener("mouseup", handleMouseUp);
+        };
+      }
+
+      //////// For a measurement step, advance when the segment is measured.
 
 
+      //////// For a line-segment measurement, advance when the measurement is created.
+      if (step.waitFor === "line-segment-measured") {
+        // TODO: Detect when a line segment measurement is created.
+      }
+
+      //////// For a measurement-units step, advance when the units are changed.
+      if (step.waitFor === "measurement-units-changed") {
+        // TODO: Detect when the measurement units are changed.
+      }
+
+      //////// For a right-triangle step, advance when the triangle is completed.
+      if (step.waitFor === "right-triangle-created") {
+        // TODO: Detect when the right triangle is completed.
+      }
+
+      //////// For an equilateral-triangle step, advance when the triangle is completed.
+      if (step.waitFor === "equilateral-triangle-created") {
+        // TODO: Detect when the equilateral triangle is completed.
+      }
+
+      //////// For a point-selection step, advance when the user selects a point.  
+
+      // Advance only after a newly created segment has an arc length greater than Pi.
+      if (step.waitFor === "longer-than-Pi-tour") {
+        // Do not count segments that already exist.
+        const existingSegmentIds = new Set(
+          seStore.seSegments.map(segment => segment.id),
+        );
+        const startingCount = seStore.seSegments.length;
+        // Watch Pinia to see if a segment greater than Pi has been made.
+        const stopWatching = watch(
+          () => seStore.seSegments.length,
+          currentCount => {
+            if (currentCount <= startingCount) return; // If for some reason the count is less than starting, stop.
+            // This will find a segment if it's larger than Pi and isn't on the sphere originally.
+            const longerSegment = seStore.seSegments.find(
+              segment =>
+                !existingSegmentIds.has(segment.id) && // If it didn't already exist
+                segment.arcLength > Math.PI,           // If the arc length is greater than Pi.
+            );
+            // If the segment was found, clean up and stop watching. 
+            if (longerSegment) {
+              stopWatching();
+              cleanupStep = undefined;
+              driverObj.moveNext();
+            }
+          },
+        );
+        cleanupStep = stopWatching;
+      }
 
 
     },//End onhighlight
@@ -454,9 +548,31 @@ const tourDefinitions: Record<TourId, TourStep[]> = {
 
   // Create a segment with a length greater than Pi.
   createLongerThanPiSegment: [
-    // TODO: Activate the Segment tool.
-    // TODO: Hold Control while creating the segment.
-    // TODO: Wait for "longer-than-Pi-tour".
+    {
+      element: '[data-tour="ta-tools"]',
+      title: "Tools Category",
+      description: "Open the Tools category if it is not already selected.",
+      waitFor: "click", 
+    },
+    {
+      element: '[data-tour="gr-BasicTools"]',
+      title: "Basic Tools",
+      description: "Open the Basic Tools section.",
+      waitFor: "click", 
+
+    },
+    {
+      element: '[data-tour="bu-segment"]',
+      title: "Create Segment",
+      description: "Click to select the segment tool.",
+      waitFor: "click", 
+    },
+    {
+      element: '#sphereContainer',
+      title: "Create the Segment",
+      description: "While holding CTRL (control), click and drag from one location to another on the sphere to make the segment.",
+      waitFor: "longer-than-Pi-tour",
+    },
   ],
 
   // Alternate way to create a circle using click and drag.
@@ -468,10 +584,36 @@ const tourDefinitions: Record<TourId, TourStep[]> = {
 
   // Move an existing geometric object.
   moveObject: [
-    // TODO: Create or require an existing geometric object.
-    // TODO: Activate the Move Objects tool.
-    // TODO: Click and drag the object.
-    // TODO: Wait for "object-moved".
+    {
+      element: "#app",
+      title: "Tour Prerequisite",
+      description: "Make sure there is a movable object on the sphere, then click to continue.",
+      waitFor: "click",
+    },
+    {
+      element: '[data-tour="ta-tools"]',
+      title: "Tools Category",
+      description: "Open the Tools category if it is not already selected.",
+      waitFor: "click",
+    },
+    {
+      element: '[data-tour="gr-DisplayTools"]',
+      title: "Display Tools",
+      description: "Open the Display Tools section.",
+      waitFor: "click",
+    },
+    {
+      element: '[data-tour="bu-move"]',
+      title: "Move Tool",
+      description: "Select the Move tool.",
+      waitFor: "click",
+    },
+    {
+      element: "#sphereContainer",
+      title: "Move an Object",
+      description: "Click and drag any movable object to a new location on the sphere.",
+      waitFor: "object-moved",
+    },
   ],
 
   // Measure the length of a line segment.

@@ -84,6 +84,8 @@ const tours = [
   { id: "rotateSphere", label: "Rotate Sphere" },
   { id: "createSegment", label: "Create a Line Segment" },
   { id: "createCircle", label: "Create a Circle" },
+  { id: "createLongerThanPiSegment", label: "Longer Than Pi Segment"},
+  { id: "moveObject", label: "Move an Object" },
 ];
 
 // Filter the tour buttons based on the text entered in the search input.
