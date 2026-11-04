@@ -1,17 +1,10 @@
-
 ﻿<template>
   <!-- Mount the logic component so its exposed functions are available. -->
   <UIFunctions ref="uiFunctions" />
 
   <!-- The open button is hidden when the tour panel is open. -->
-  <button
-    v-if="!isOpen"
-    type="button"
-    class="tour-open-button"
-    aria-label="Open Tour menu"
-    title="Open Tour menu"
-    @click="openTourTab"
-  >
+  <button v-if="!isOpen" type="button" class="tour-open-button" aria-label="Open Tour menu" title="Open Tour menu"
+    @click="openTourTab">
     ?
   </button>
 
@@ -19,13 +12,8 @@
   <section v-else class="tour-panel" aria-label="Guided tours">
     <header class="tour-header">
       <h2>Tour</h2>
-      <button
-        type="button"
-        class="close-button"
-        aria-label="Close Tour menu"
-        title="Close Tour menu"
-        @click="closeTourTab"
-      >
+      <button type="button" class="close-button" aria-label="Close Tour menu" title="Close Tour menu"
+        @click="closeTourTab">
         ^
       </button>
     </header>
@@ -33,26 +21,16 @@
     <!-- The search input is used to filter the list of tours. -->
     <div class="tour-search">
       <span class="search-icon">⌕</span>
-      <input
-        v-model="searchText"
-        type="text"
-        placeholder="Search For Tour"
-        aria-label="Search for tour"
-        @input="searchTours"
-      />
+      <input v-model="searchText" type="text" placeholder="Search For Tour" aria-label="Search for tour"
+        @input="searchTours" />
     </div>
 
     <!-- $$$$ Step 3 Create Tour Button $$$$-->
     <div class="tour-list-container">
 
       <div class="tour-list">
-        <button
-          v-for="tour in filteredTours"
-          :key="tour.id"
-          type="button"
-          class="tour-choice"
-          @click="selectTour(tour.id)"
-        >
+        <button v-for="tour in filteredTours" :key="tour.id" type="button" class="tour-choice"
+          @click="selectTour(tour.id)">
           {{ tour.label }}
         </button>
 
@@ -78,12 +56,37 @@ import UIFunctions from "./UIFunctions.vue";
 const isOpen = ref(false); // Controls whether the tour panel is open or closed.
 const searchText = ref("");  // The text entered in the search input to filter the list of tours.
 
+/*
+  | "createPoint"
+  | "rotateSphere"
+  | "createSegment"
+  | "createCircle"
+  //  | "createAltSegment"
+  | "createBehindSpherePoint"
+  | "createLongerThanPiSegment"
+  //  | "createAltCircle"
+  | "moveObject"
+  | "measureSegment"
+  | "changeMeasurementUnits"
+  | "createRightTriangle"
+  | "createEquilateralTriangle";
+*/
+
 // The available tours and the labels displayed in the Tour panel.
 const tours = [
   { id: "createPoint", label: "Create a Point" },
   { id: "rotateSphere", label: "Rotate Sphere" },
   { id: "createSegment", label: "Create a Line Segment" },
   { id: "createCircle", label: "Create a Circle" },
+
+  { id: "createBehindSpherePoint", label: "Create a Point Behind the Sphere" },
+  { id: "createLongerThanPiSegment", label: "Create a Line Segment Longer than π" },
+  { id: "moveObject", label: "Move an Object" },
+  { id: "measureSegment", label: "Measure a Line Segment" },
+  { id: "changeMeasurementUnits", label: "Change Measurement Units" },
+
+  { id: "createRightTriangle", label: "Create a Right Triangle" },
+  { id: "createEquilateralTriangle", label: "Create an Equilateral Triangle" }
 ];
 
 // Filter the tour buttons based on the text entered in the search input.
@@ -96,7 +99,7 @@ const filteredTours = computed(() => {
 const uiFunctions = ref<{
   selectTour: (tourId: string) => void; // Called by the tour buttons to start a tour.
   searchTours: (query: string) => void; // Called by the search input. The text is passed to the child component.
-} | null>(null); 
+} | null>(null);
 
 function openTourTab(): void { isOpen.value = true; } // Called by the open button to show the tour panel.
 
@@ -105,6 +108,7 @@ function closeTourTab(): void { isOpen.value = false; } // Called by the close b
 function selectTour(tourId: string): void { uiFunctions.value?.selectTour(tourId); } // Called by the tour buttons to start a tour.
 
 function searchTours(): void { uiFunctions.value?.searchTours(searchText.value); } // Passes the search text to UIFunctions.vue.
+
 
 </script>
 
