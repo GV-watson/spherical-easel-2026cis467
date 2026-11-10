@@ -1,5 +1,6 @@
+<!-- 
 <template>
-  <!-- This component contains tour logic only; the UI is in UITour.vue. -->
+  <!-- This component contains tour logic only; the UI is in UITour.vue. 
   <span hidden aria-hidden="true"></span>
 </template>
 
@@ -10,11 +11,84 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 
 //******************************************************* */  Driver.js watching for click and object creation
-import { watch } from "vue";
+
+/*
+//The idea in the firebase doc
+
+under: Users - {uid}
+ 
+completedTours: {
+  createPoint: "2026-11-05T16:30:00.000Z"
+
+
+}
+*/
+
+import { ref, watch } from "vue";
 import { useSEStore } from "@/stores/se";
+import { useAccountStore } from "@/stores/account";
+import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
 
 import { SEPoint } from "@/models-spherical/SEPoint";
 import { SESegmentLength } from "@/models-spherical/SESegmentLength";
+import { storeToRefs } from "pinia";
+
+// Stores the completion timestamps for each tour.
+const completedTours = ref<Record<string, string>>({});
+
+// Get the signed-in user's account and Firebase database.
+const accountStore = useAccountStore();
+const appDB = getFirestore();
+const { firebaseUid } = storeToRefs(accountStore);
+
+// Load completed tours whenever the signed-in user changes.
+watch(
+  () => accountStore.firebaseUid,
+  async (uid) => {
+    completedTours.value = {};
+
+    if (!uid) return;
+
+    try {
+      const userDoc = await getDoc(doc(appDB, "users", uid));
+
+      if (userDoc.exists()) {
+        completedTours.value = userDoc.data().completedTours ?? {};
+      }
+    } catch (error) {
+      console.error("Unable to load completed tours:", error);
+    }
+  },
+  { immediate: true }
+);
+
+// Save the completion timestamp for a specific tour.
+async function saveTourCompletion(tourId: string): Promise<void> {
+  const completedAt = new Date().toISOString();
+
+  // Update local completion data, regardless of login status.
+  completedTours.value = {
+    ...completedTours.value,
+    [tourId]: completedAt
+  };
+
+  const uid = accountStore.firebaseUid;
+
+  // Only save to Firestore if the user is signed in.
+  if (!uid) return;
+
+  try {
+    const userDoc = doc(appDB, "users", uid);
+
+    // Update only this tour's entry.
+    await updateDoc(userDoc, {
+      [`completedTours.${tourId}`]: completedAt
+    });
+  } catch (error) {
+    console.error("Unable to save tour completion:", error);
+  }
+
+}
 
 // The steps of a tour, including the element to highlight and the popover content.
 type TourStep = {
@@ -80,8 +154,20 @@ function selectTour(tourId: string): void {
   let cleanupStep: (() => void) | undefined;
   // Declared here so callbacks below can use the Driver.js instance after it is created.
   let driverObj: ReturnType<typeof driver>;
+
+  // Tracks which step is currently highlighted.
+  let currentStepIndex = 0;
+
+  //Fire// Advances the tour and saves completion if this was the final step.
+  function advanceTour(): void {
+    if (currentStepIndex === selectedTour.length - 1) {
+      void saveTourCompletion(tourId);
+    }
+    driverObj.moveNext();
+  }
+
   // Convert this tour's step definitions into the format Driver.js expects.
-  const steps = selectedTour.map(step => ({
+  const steps = selectedTour.map((step, stepIndex) => ({
     // CSS selector for the page element Driver.js highlights.
     element: step.element,
     // Text shown in the Driver.js popover.
@@ -92,6 +178,9 @@ function selectTour(tourId: string): void {
 
     // Runs when Driver.js highlights this step.
     onHighlighted: (element?: Element) => {
+
+      // Track the currently highlighted step.
+      currentStepIndex = stepIndex;
 
       // Remove the previous step's listener if one is still active.
       cleanupStep?.();
@@ -105,7 +194,7 @@ function selectTour(tourId: string): void {
 
       // For a click step, advance when the highlighted element is clicked.
       if (step.waitFor === "click") {
-        const handleClick = () => driverObj.moveNext();
+        const handleClick = () => advanceTour();
         // { once: true } makes the browser remove the listener after its first click.
         element.addEventListener("click", handleClick, { once: true });
         // Save a cleanup function in case the user leaves this step before clicking.
@@ -124,10 +213,9 @@ function selectTour(tourId: string): void {
               );
 
               if (newlySelectedPoint) {
-                pointForLater = newlySelectedPoint; // Save it for later tour steps!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                stopWatching();
+                pointForLater = newlySelectedPoint; // Save it for later tour steps?
                 cleanupStep = undefined;
-                driverObj.moveNext();
+                advanceTour();
               }
             },
         );
@@ -147,7 +235,7 @@ function selectTour(tourId: string): void {
             if (currentCount > startingCount) {
               stopWatching(); // Stop watching after the condition succeeds.
               cleanupStep = undefined;
-              driverObj.moveNext(); // Advance to the next tour step.
+              advanceTour(); // Advance to the next tour step.
             }
           },
         );
@@ -169,7 +257,7 @@ function selectTour(tourId: string): void {
             if (currentCount > startingCount) {
               stopWatching();
               cleanupStep = undefined;
-              driverObj.moveNext();
+              advanceTour();
             }
           },
         );
@@ -204,7 +292,7 @@ function selectTour(tourId: string): void {
             if (newMeasurement) {
               stopWatching();
               cleanupStep = undefined;
-              driverObj.moveNext();
+              advanceTour();
             }
           },
         );
@@ -215,7 +303,43 @@ function selectTour(tourId: string): void {
 
       //////// For a back-of-sphere point step, advance when the point is created.
       if (step.waitFor === "behind-sphere-point-created") {
-        // TODO: Detect when a point is created on the back of the sphere.
+        // Creates a variable to detect when the user is holding the shift key
+        let isShiftHeld = false;
+        const handleKeyDown = (event: KeyboardEvent) => {
+          if (event.key === "Shift") {
+            isShiftHeld = true;
+          }
+        };
+        const handleKeyUp = (event: KeyboardEvent) => {
+          if (event.key === "Shift") {
+            isShiftHeld = false;
+          }
+        };
+        // Capture how many points existed when this step began.
+        let startingCount = seStore.sePoints.length;
+
+        // Watch the reactive Pinia collection for a new point.
+        const stopWatching = watch(
+          () => seStore.sePoints.length,
+          currentCount => {
+            // A larger count means at least one point was added.
+            if (currentCount > startingCount) {
+              if (isShiftHeld === true) {
+                // if the user holds shift while creating the tour will move to the next step
+                document.removeEventListener("keydown", handleKeyDown);
+                document.removeEventListener("keyup", handleKeyUp);
+                stopWatching();
+                cleanupStep = undefined;
+                advanceTour();
+              }
+            } else {
+              // if the user creates a point without pressing shift this will update the count and keep waiting
+              startingCount++;
+            }
+          },
+        );
+        // Stop watching if the user leaves this step early.
+        cleanupStep = stopWatching;
       }
 
       /*
@@ -247,7 +371,7 @@ function selectTour(tourId: string): void {
             if (longerSegment) {
               stopWatching();
               cleanupStep = undefined;
-              driverObj.moveNext();
+              advanceTour();
             }
           },
         );
@@ -267,7 +391,7 @@ function selectTour(tourId: string): void {
             if (currentCount > startingCount) {
               stopWatching();
               cleanupStep = undefined;
-              driverObj.moveNext();
+              advanceTour();
             }
           },
         );
@@ -296,7 +420,7 @@ function selectTour(tourId: string): void {
             if (currentRotation !== startingRotation) {
               stopWatching();
               cleanupStep = undefined;
-              driverObj.moveNext();
+              advanceTour();
             }
           },
         );
@@ -333,7 +457,7 @@ function selectTour(tourId: string): void {
                 if (moved) {
                   stopWatching();
                   cleanupStep = undefined;
-                  driverObj.moveNext();
+                  advanceTour();
                 }
               },
         );
@@ -367,7 +491,7 @@ function selectTour(tourId: string): void {
             if (newMeasurement) {
               stopWatching();
               cleanupStep = undefined;
-              driverObj.moveNext();
+              advanceTour();
             }
           },
         );
@@ -402,7 +526,7 @@ function selectTour(tourId: string): void {
             if (unitsChanged) {
               stopWatching();
               cleanupStep = undefined;
-              driverObj.moveNext();
+              advanceTour();
             }
           },
         );
@@ -424,7 +548,7 @@ function selectTour(tourId: string): void {
             if (currentCount >= startingCount + 1) {
               stopWatching();
               cleanupStep = undefined;
-              driverObj.moveNext();
+              advanceTour();
             }
           },
         );
@@ -440,7 +564,7 @@ function selectTour(tourId: string): void {
             if (currentCount >= startingCount + 1) {
               stopWatching();
               cleanupStep = undefined;
-              driverObj.moveNext();
+              advanceTour();
             }
           },
         );
@@ -463,6 +587,12 @@ function selectTour(tourId: string): void {
   driverObj = driver({
     showProgress: true, // Show the step counter/progress indicator.
     steps,
+
+    // Route the built-in Next button through advanceTour so the final
+    // step is saved as completed before the tour closes.
+    onNextClick: () => {
+      advanceTour();
+    },
   });
 
   // Start the tour.
@@ -478,7 +608,7 @@ function searchTours(query: string): void {
 
 // Expose the functions to the parent component (UITour.vue) so it can call them
 // when a tour button is clicked or when the search input changes.
-defineExpose({ selectTour, searchTours });
+defineExpose({ selectTour, searchTours, completedTours });
 
 
 // The tour definitions are stored in a separate component to keep the logic organized and maintainable.
@@ -528,6 +658,9 @@ const tourDefinitions: Record<TourId, TourStep[]> = {
       title: "Sphere Canvas",
       description: "Place the point anywhere within the circle.\nYou have created a point!",
       waitFor: "point-created",
+      //update firestore account 
+      //if first time completeing tour when logged in send time when completed and completetion flag.
+      //completedtour at 
     },
   ],
 
@@ -1012,3 +1145,4 @@ const tourDefinitions: Record<TourId, TourStep[]> = {
 
 
 </script>
+-->

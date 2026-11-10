@@ -1,54 +1,30 @@
 <template>
-  <div
-    id="authToolbox"
-    class="my-1"
-    :style="{
-      alignItems: 'flex-start',
-      rowGap: '8px'
+  <div id="authToolbox" class="my-1" :style="{
+    alignItems: 'flex-start',
+    rowGap: '8px'
+  }">
+    <span id="diplayed-name" v-if="userProfile" @click="isAbbreviatedName = !isAbbreviatedName" :style="{
+      writingMode: 'sideways-lr',
+      textOrientation: 'mixed'
     }">
-    <span
-      id="diplayed-name"
-      v-if="userProfile"
-      @click="isAbbreviatedName = !isAbbreviatedName"
-      :style="{
-        writingMode: 'sideways-lr',
-        textOrientation: 'mixed'
-      }">
       {{ userDisplayedName }}
-      <v-tooltip
-        activator="parent"
-        text="Click to toggle short/long name"></v-tooltip>
+      <v-tooltip activator="parent" text="Click to toggle short/long name"></v-tooltip>
     </span>
-    <v-btn
-      icon
-      size="x-small"
-      class="bg-green-lighten-1"
-      @click="switchGeometryMode">
+    <v-btn icon size="x-small" class="bg-green-lighten-1" @click="switchGeometryMode">
       <v-icon color="black">mdi-calculator</v-icon>
       <v-tooltip activator="parent">
         Switch to
         {{ geometryMode === "spherical" ? "Hyperbolic" : "Spherical" }}
       </v-tooltip>
     </v-btn>
-    <v-btn
-      icon
-      size="x-small"
-      class="bg-green-lighten-1"
-      @click="doLoginOrLogout">
-      <v-avatar
-        size="small"
-        v-if="userProfile?.profilePictureURL"
-        contain
-        max-width="40"
+    <v-btn icon size="x-small" class="bg-green-lighten-1" @click="doLoginOrLogout">
+      <v-avatar size="small" v-if="userProfile?.profilePictureURL" contain max-width="40"
         :image="userProfile!.profilePictureURL"></v-avatar>
 
       <v-icon size="x-large" v-else>mdi-account</v-icon>
-      <v-tooltip
-        activator="parent"
-        :text="
-          firebaseUid
-            ? `Logout ${userEmail} ${firebaseUid.substring(0, 8)}`
-            : 'Login'
+      <v-tooltip activator="parent" :text="firebaseUid
+          ? `Logout ${userEmail} ${firebaseUid.substring(0, 8)}`
+          : 'Login'
         "></v-tooltip>
     </v-btn>
     <router-link to="/settings/" v-if="firebaseUid">
@@ -56,10 +32,7 @@
         <v-icon size="large" color="white">mdi-cog</v-icon>
       </v-btn>
     </router-link>
-    <HintButton
-      color="green-lighten-2"
-      v-if="firebaseUid && hasObjects"
-      @click="showSaveConstructionDialog()"
+    <HintButton color="green-lighten-2" v-if="firebaseUid && hasObjects" @click="showSaveConstructionDialog()"
       tooltip="Save construction">
       <template #icon>mdi-content-save</template>
     </HintButton>
@@ -73,47 +46,23 @@
       ">
       <template #icon>mdi-share-variant</template>
     </HintButton> -->
-    <HintButton
-      color="green-lighten-2"
-      v-if="constructionDocId"
-      @click="() => exportConstructionDialog?.show()"
+    <HintButton color="green-lighten-2" v-if="constructionDocId" @click="() => exportConstructionDialog?.show()"
       :tooltip="t('exportConstructionDialogTitle')">
       <template #icon>mdi-export</template>
     </HintButton>
   </div>
-  <Dialog
-    ref="saveConstructionDialog"
-    :title="
-      isSavedAsPublicConstruction
-        ? t('savePublicConstructionDialogTitle')
-        : t('savePrivateConstructionDialogTitle')
-    "
-    :yes-text="t('saveAction')"
-    :no-text="t('cancelAction')"
-    :yes-action="doSave"
-    max-width="40%">
+  <Dialog ref="saveConstructionDialog" :title="isSavedAsPublicConstruction
+      ? t('savePublicConstructionDialogTitle')
+      : t('savePrivateConstructionDialogTitle')
+    " :yes-text="t('saveAction')" :no-text="t('cancelAction')" :yes-action="doSave" max-width="40%">
     <!-- Wrapper div to prevent scrolling in the main dialog -->
     <div style="overflow: visible; max-height: none">
-      <v-text-field
-        type="text"
-        density="compact"
-        clearable
-        counter
-        persistent-hint
-        :label="t('construction.saveDescription')"
-        required
-        v-model="constructionDescription"
+      <v-text-field type="text" density="compact" clearable counter persistent-hint
+        :label="t('construction.saveDescription')" required v-model="constructionDescription"
         @keypress.stop></v-text-field>
-      <v-switch
-        v-model="isSavedAsPublicConstruction"
-        :disabled="!firebaseUid"
+      <v-switch v-model="isSavedAsPublicConstruction" :disabled="!firebaseUid"
         :label="t('construction.makePublic')"></v-switch>
-      <v-switch
-        v-if="isMyOwnConstruction"
-        v-model="shouldSaveOverwrite"
-        :disabled="!firebaseUid"
-        :label="
-          t('construction.saveOverwrite', { docId: constructionDocId })
+      <v-switch v-if="isMyOwnConstruction" v-model="shouldSaveOverwrite" :disabled="!firebaseUid" :label="t('construction.saveOverwrite', { docId: constructionDocId })
         "></v-switch>
 
       <!-- Folder Selection Section -->
@@ -124,29 +73,16 @@
         </h3>
 
         <!-- Folder path input -->
-        <v-text-field
-          v-model="folderPath"
-          label=""
-          density="compact"
-          :hint="t('folder.pathLabel')"
-          persistent-hint
-          clearable
-          @keypress.stop></v-text-field>
+        <v-text-field v-model="folderPath" label="" density="compact" :hint="t('folder.pathLabel')" persistent-hint
+          clearable @keypress.stop></v-text-field>
 
         <!-- Existing Folders Treeview -->
         <p class="text-caption mt-2 mb-1">{{ t("folder.selectExisting") }}</p>
         <div class="folder-tree-container">
-          <v-treeview
-            :items="treeItems"
-            select-strategy="single-independent"
-            selectable
-            dense
-            item-value="id"
-            open-all
-            class="mt-1 folder-tree"
-            @update:selected="handleNodeSelection">
+          <v-treeview :items="treeItems" select-strategy="single-independent" selectable dense item-value="id" open-all
+            class="mt-1 folder-tree" @update:selected="handleNodeSelection">
             <!-- TODO add icon to TreeviewNode type -->
-            <template v-slot:prepend="{}">
+            <template v-slot:prepend="{ }">
               <v-icon>{{ /*item.icon ||*/ "mdi-folder" }}</v-icon>
             </template>
           </v-treeview>
@@ -154,23 +90,12 @@
       </div>
     </div>
   </Dialog>
-  <Dialog
-    ref="exportConstructionDialog"
-    :title="t('exportConstructionDialogTitle')"
-    :yes-text="t('exportAction')"
-    :no-text="t('cancelAction')"
-    :yes-action="doExport"
-    max-width="60%">
+  <Dialog ref="exportConstructionDialog" :title="t('exportConstructionDialogTitle')" :yes-text="t('exportAction')"
+    :no-text="t('cancelAction')" :yes-action="doExport" max-width="60%">
     <v-row align="center" justify="space-between">
       <v-col v-if="currentConstructionPreview" cols="6" width="400px">
-        <v-img
-          id="preview"
-          class="center"
-          display="flex"
-          justify-content="center"
-          align-items="center"
-          :src="currentConstructionPreview"
-          :width="(imageExportHeight * 400) / 1500"
+        <v-img id="preview" class="center" display="flex" justify-content="center" align-items="center"
+          :src="currentConstructionPreview" :width="(imageExportHeight * 400) / 1500"
           :height="(imageExportHeight * 400) / 1500" />
       </v-col>
       <v-col cols="6">
@@ -183,62 +108,33 @@
                 })
               }}
             </p>
-            <v-slider
-              v-model="imageExportHeight"
-              class="align-center"
-              :max="1500"
-              :min="50"
-              :step="10"
-              hide-details>
+            <v-slider v-model="imageExportHeight" class="align-center" :max="1500" :min="50" :step="10" hide-details>
               <template v-slot:append>
-                <v-text-field
-                  type="number"
-                  :rules="[exportHeightRule]"
-                  v-model="imageExportHeight"
-                  class="mt-0 pt-0"
-                  style="width: 100px"
-                  outlined
-                  @change="checkExportHeight()"
-                  @keypress.stop></v-text-field>
+                <v-text-field type="number" :rules="[exportHeightRule]" v-model="imageExportHeight" class="mt-0 pt-0"
+                  style="width: 100px" outlined @change="checkExportHeight()" @keypress.stop></v-text-field>
               </template>
             </v-slider>
           </v-col>
           <v-row>
             <v-col class="d-flex" cols="12">
-              <v-select
-                style="width: 400px"
-                :items="exportFileTypeItems"
-                :label="t('exportFormat')"
-                v-model="selectedExportFormat"
-                solo></v-select>
+              <v-select style="width: 400px" :items="exportFileTypeItems" :label="t('exportFormat')"
+                v-model="selectedExportFormat" solo></v-select>
             </v-col>
           </v-row>
           <v-col class="d-flex" cols="8">
-            <v-checkbox
-              v-model="svgNonScaling"
-              value="stroke"
-              :label="t('nonScalingStroke')"
+            <v-checkbox v-model="svgNonScaling" value="stroke" :label="t('nonScalingStroke')" hide-details></v-checkbox>
+          </v-col>
+          <v-col class="d-flex" cols="8">
+            <v-checkbox v-model="svgNonScaling" value="point" :label="t('nonScalingPointRadius')"
               hide-details></v-checkbox>
           </v-col>
           <v-col class="d-flex" cols="8">
-            <v-checkbox
-              v-model="svgNonScaling"
-              value="point"
-              :label="t('nonScalingPointRadius')"
-              hide-details></v-checkbox>
-          </v-col>
-          <v-col class="d-flex" cols="8">
-            <v-checkbox
-              v-model="svgNonScaling"
-              value="text"
-              :label="t('nonScalingText')"
-              hide-details></v-checkbox>
+            <v-checkbox v-model="svgNonScaling" value="text" :label="t('nonScalingText')" hide-details></v-checkbox>
           </v-col>
 
-          <v-col
-            v-if="
-              selectedExportFormat == 'Animated SVG' && axisId != undefined
-            ">
+          <v-col v-if="
+            selectedExportFormat == 'Animated SVG' && axisId != undefined
+          ">
             <p>
               {{ t("animatedSVGOptions") }}
             </p>
@@ -247,13 +143,8 @@
             </p>
             <v-divider></v-divider>
             <v-col class="d-flex" cols="12">
-              <v-select
-                v-model="axisId"
-                :items="possibleAxisItems"
-                item-title="text"
-                item-value="value"
-                density="compact"
-                :label="t('svgAnimationAxis')"></v-select>
+              <v-select v-model="axisId" :items="possibleAxisItems" item-title="text" item-value="value"
+                density="compact" :label="t('svgAnimationAxis')"></v-select>
             </v-col>
             <v-col class="d-flex" cols="12">
               <p>
@@ -262,54 +153,25 @@
             </v-col>
             <v-row>
               <v-col cols="12" class="d-flex">
-                <v-slider
-                  v-model="svgAnimationAngle"
-                  class="align-center"
-                  :max="360"
-                  :min="5"
-                  :step="5"
-                  hide-details>
+                <v-slider v-model="svgAnimationAngle" class="align-center" :max="360" :min="5" :step="5" hide-details>
                   <template v-slot:append>
-                    <v-text-field
-                      type="number"
-                      v-model="svgAnimationAngle"
-                      :rules="[animationRotationAngleRule]"
-                      style="width: 100px"
-                      class="mt-0 pt-0"
-                      @change="checkAnimationRotationAngle()"
+                    <v-text-field type="number" v-model="svgAnimationAngle" :rules="[animationRotationAngleRule]"
+                      style="width: 100px" class="mt-0 pt-0" @change="checkAnimationRotationAngle()"
                       @keypress.stop></v-text-field>
                   </template>
                 </v-slider>
               </v-col>
             </v-row>
             <v-col cols="12" class="d-flex">
-              <v-text-field
-                type="number"
-                v-model="svgAnimationDuration"
-                :rules="[animationDurationRule]"
-                style="width: 100px"
-                class="mt-0 pt-0"
-                @change="checkAnimationDuration()"
-                :label="t('animationDuration')"
-                @keypress.stop></v-text-field>
-              <v-text-field
-                type="number"
-                v-model="svgAnimationFrames"
-                :rules="[animationNumberOfFramesRule]"
-                style="width: 100px"
-                class="mt-0 pt-0"
-                @change="checkAnimationNumberOfFrames()"
-                :label="t('animationFrames')"
-                @keypress.stop></v-text-field>
-              <v-text-field
-                type="number"
-                v-model="svgAnimationRepeat"
-                :rules="[animationRepeatRule]"
-                style="width: 100px"
-                @change="checkAnimationRepeatRule()"
-                class="mt-0 pt-0"
-                :label="t('animationRepeat')"
-                @keypress.stop></v-text-field>
+              <v-text-field type="number" v-model="svgAnimationDuration" :rules="[animationDurationRule]"
+                style="width: 100px" class="mt-0 pt-0" @change="checkAnimationDuration()"
+                :label="t('animationDuration')" @keypress.stop></v-text-field>
+              <v-text-field type="number" v-model="svgAnimationFrames" :rules="[animationNumberOfFramesRule]"
+                style="width: 100px" class="mt-0 pt-0" @change="checkAnimationNumberOfFrames()"
+                :label="t('animationFrames')" @keypress.stop></v-text-field>
+              <v-text-field type="number" v-model="svgAnimationRepeat" :rules="[animationRepeatRule]"
+                style="width: 100px" @change="checkAnimationRepeatRule()" class="mt-0 pt-0"
+                :label="t('animationRepeat')" @keypress.stop></v-text-field>
             </v-col>
           </v-col>
         </v-row>
@@ -323,6 +185,7 @@
   display: flex;
   flex-direction: column;
 }
+
 .folder-tree-container {
   max-height: 200px;
   overflow-y: auto;
@@ -466,14 +329,14 @@ const userDisplayedName = computed(() => {
     return !isAbbreviatedName.value
       ? userProfile.value.displayName
       : userProfile.value.displayName
-          .split(" ") // Split individual words
-          .map(s =>
-            s
-              .substring(0, 1)
-              .toUpperCase()
-              .replace(/[^A-Z]/, "")
-          )
-          .join(""); // don't use default separator (,)
+        .split(" ") // Split individual words
+        .map(s =>
+          s
+            .substring(0, 1)
+            .toUpperCase()
+            .replace(/[^A-Z]/, "")
+        )
+        .join(""); // don't use default separator (,)
   } else return "N/A";
 });
 /**
@@ -698,6 +561,7 @@ onUpdated(() => {
 async function doLoginOrLogout() {
   if (firebaseUid.value) {
     await acctStore.signOff();
+    console.error("signn in error");
     firebaseUid.value = undefined;
   } else {
     router.push({ path: "/account" });
@@ -914,8 +778,7 @@ function switchGeometryMode() {
 //   return dataUrl ? dataUrl : "/logo.png";
 // }
 </script>
-<i18n locale="en" lang="json">
-{
+<i18n locale="en" lang="json">{
   "savePrivateConstructionDialogTitle": "Save Private Construction",
   "savePublicConstructionDialogTitle": "Save Public Construction",
   "exportConstructionDialogTitle": "Export Construction",
@@ -938,7 +801,6 @@ function switchGeometryMode() {
   "nonScalingStroke": "Do not scale SVG stroke",
   "nonScalingPointRadius": "Do not scale points",
   "nonScalingText": "Do not scale text",
-
   "svgAnimationAxis": "Select an object to rotate around or along",
   "svgAnimationDuration": "Duration",
   "svgAnimationFrames": "Number of frames",
@@ -963,10 +825,8 @@ function switchGeometryMode() {
     "pathLabel": "Folder Path (e.g., favs/math/geometry)",
     "selectExisting": "Or select an existing folder:"
   }
-}
-</i18n>
-<i18n locale="id" lang="json">
-{
+}</i18n>
+<i18n locale="id" lang="json">{
   "savePrivateConstructionDialogTitle": "Simpan Konstruksi Privat",
   "savePublicConstructionDialogTitle": "Simpan Konstruksi Publik",
   "exportConstructionDialogTitle": "Ekspor Konstruksi",
@@ -989,7 +849,6 @@ function switchGeometryMode() {
   "nonScalingStroke": "Jangan gunakan skala garis SVG",
   "nonScalingPointRadius": "Jangan gunakan skala garis",
   "nonScalingText": "Jangan gunakan skala teks",
-
   "svgAnimationAxis": "Pilih sumbu putar",
   "svgAnimationDuration": "Durasi",
   "svgAnimationFrames": "Banyaknya bingkai animasi",
@@ -1009,5 +868,4 @@ function switchGeometryMode() {
   "segment": "Segmen: ",
   "point": "Titik: ",
   "circle": "Lingkaran: "
-}
-</i18n>
+}</i18n>
