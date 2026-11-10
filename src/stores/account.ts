@@ -16,6 +16,7 @@ import {
   UserCredential,
   createUserWithEmailAndPassword,
   getAuth,
+  onAuthStateChanged,  //tutorial
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -65,6 +66,29 @@ export const useAccountStore = defineStore("acct", () => {
   const excludedTools: Ref<ActionMode[]> = ref([]);
   const favoriteTools: Ref<Array<Array<ActionMode>>> = ref(DEFAULT_TOOL_NAMES);
   const constructionDocId: Ref<string | null> = ref(null);
+ ///*
+ // Initialize the auth state listener only once, 
+ // even if this store is used in multiple components.
+  let authStateListenerInitialized = false; //
+
+  function initializeAuthStateListener(): void {
+    if (authStateListenerInitialized) return; // Already initialized, do nothing
+    authStateListenerInitialized = true;  // Mark as initialized
+
+    onAuthStateChanged(appAuth, async user => { // Listen for auth state changes
+      if (user) { // User is signed in
+        userEmail.value = user.email ?? undefined;
+        await parseUserProfile(user);
+      } 
+      else {
+        firebaseUid.value = undefined;
+        userEmail.value = undefined;
+        userProfile.value = DEFAULT_PROFILE;
+        favoriteTools.value = DEFAULT_TOOL_NAMES;
+      }
+    });
+  }
+  //*//////////////////////////////////////////////
 
   function resetToolset(includeAll = true): void {
     includedTools.value.splice(0);
@@ -178,6 +202,7 @@ export const useAccountStore = defineStore("acct", () => {
 
   async function signOff(): Promise<void> {
     favoriteTools.value = DEFAULT_TOOL_NAMES;
+    console.debug("Resetting user profile to default");
     userProfile.value = DEFAULT_PROFILE;
     userEmail.value = undefined;
     await signOut(appAuth);
@@ -231,6 +256,9 @@ export const useAccountStore = defineStore("acct", () => {
     excludeToolName,
     googleLogin,
     includeToolName,
+    
+    initializeAuthStateListener, // for /tutorial
+    
     parseAndSetFavoriteTools,
     parseUserProfile,
     saveUserProfile,
