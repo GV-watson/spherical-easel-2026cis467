@@ -34,7 +34,7 @@
           </v-tooltip>
         </a>
       </template>
-      <v-app-bar-title>{{ t("main.SphericalEaselMainTitle") }}</v-app-bar-title> -->
+<v-app-bar-title>{{ t("main.SphericalEaselMainTitle") }}</v-app-bar-title> -->
 
     <!--- TODO: Change the URL to match the hosting site
                For instance, on GitLab use href="/sphericalgeometryvue/docs"
@@ -54,18 +54,13 @@
     -->
     <v-main>
       <router-view />
+
       <!-- this is the spot where the views controlled by Vue Router will be rendered -->
     </v-main>
   </v-app>
 
-  <Dialog
-    ref="logoutDialog"
-    :title="t('constructions.confirmLogout')"
-    :yes-text="t('constructions.proceed')"
-    :yes-action="() => doLogout()"
-    :no-text="t('constructions.cancel')"
-    style=""
-    max-width="40%">
+  <Dialog ref="logoutDialog" :title="t('constructions.confirmLogout')" :yes-text="t('constructions.proceed')"
+    :yes-action="() => doLogout()" :no-text="t('constructions.cancel')" style="" max-width="40%">
     <p>
       {{ t("constructions.logoutDialog") }}
     </p>
@@ -89,6 +84,11 @@ import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { useConstructionStore } from "./stores/construction";
 import { onUnmounted } from "vue";
+import { VirtualConsoleLogLevelEnum } from "happy-dom";
+
+
+const accountStore = useAccountStore();
+const { firebaseUid, userEmail } = storeToRefs(accountStore);
 
 // Register vue router in-component navigation guard functions
 // Component.registerHooks([
@@ -99,6 +99,7 @@ import { onUnmounted } from "vue";
 
 const { t } = useI18n();
 const acctStore = useAccountStore();
+
 const constructionStore = useConstructionStore();
 
 const logoutDialog: Ref<DialogAction | null> = ref(null);
@@ -108,15 +109,26 @@ onBeforeMount((): void => {
   acctStore.resetToolset();
 });
 
+// This is the main entry point for the app. It is called when the app is first loaded.
 onMounted((): void => {
   console.log("Base URL is ", import.meta.env.BASE_URL);
+  // Initialize the auth state listener only once, 
+  acctStore.initializeAuthStateListener();
   constructionStore.initialize();
   // SEStore.init();
-  // Get the top-level SVG element
-});
+  //Get the top-level SVG element
 
-onUnmounted(async () => {
+  /* 
+  // Restore the account store from Firebase’s persisted session when the app starts.
+  Commenting out the following code because onMounted was 
+  calling signoff() 
+
+  onUnmounted(async () => {
   await acctStore.signOff();
+  console.error("signn in error");
+
+  */
+
 });
 
 async function doLogout(): Promise<void> {
@@ -133,6 +145,7 @@ async function doLogout(): Promise<void> {
   align-items: center;
   font-size: 15px;
 }
+
 .footer-color {
   //color: accent;
 }
@@ -145,6 +158,7 @@ async function doLogout(): Promise<void> {
   animation-name: pulse;
   animation-duration: 0.5s;
 }
+
 .pulse-leave-active {
   animation-name: pulse;
   animation-duration: 0.5s;
@@ -155,9 +169,11 @@ async function doLogout(): Promise<void> {
   0% {
     transform: scale(0);
   }
+
   50% {
     transform: scale(2);
   }
+
   100% {
     transform: scale(1);
   }
