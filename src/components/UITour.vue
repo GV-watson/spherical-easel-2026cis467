@@ -30,6 +30,8 @@
         <button v-for="tour in filteredTours" :key="tour.id" type="button" class="tour-choice"
           @click="selectTour(tour.id)">
           <span>{{ tour.label }}</span>
+
+          <!-- Display a checkmark if the user has completed this tour. -->
           <span v-if="completedTours[tour.id]" class="tour-completed" title="Completed" aria-label="Completed">
             ✓
           </span>
@@ -49,50 +51,24 @@
 <script setup lang="ts">
 /*///////////////////////////////////////////////////////////// Spherical Easel TypeScript ///////////////////////////////////////////////////////////////////////////////////////////*/
 
-/* Displays the Tour panel and calls the tour functions exposed by UIFunctions.vue. */
+/* Displays the Tour panel and calls the tour functions exposed by UIFunctions.ts. */
 
 import { computed, ref } from "vue";
-//import UIFunctions from "./UIFunctions.vue";
 import { useUIFunctions } from "./UIFunctions";
 
-const { selectTour: startTour, searchTours: updateTourSearch, completedTours } = useUIFunctions();
+
+
+const {
+  completedTours,
+  tours,
+  selectTour: startTour,
+  searchTours: updateTourSearch
+} = useUIFunctions();
 
 
 const isOpen = ref(false); // Controls whether the tour panel is open or closed.
 const searchText = ref("");  // The text entered in the search input to filter the list of tours.
 
-/*
-  | "createPoint"
-  | "rotateSphere"
-  | "createSegment"
-  | "createCircle"
-  //  | "createAltSegment"
-  | "createBehindSpherePoint"
-  | "createLongerThanPiSegment"
-  //  | "createAltCircle"
-  | "moveObject"
-  | "measureSegment"
-  | "changeMeasurementUnits"
-  | "createRightTriangle"
-  | "createEquilateralTriangle";
-*/
-
-// The available tours and the labels displayed in the Tour panel.
-const tours = [
-  { id: "createPoint", label: "Create a Point" },
-  { id: "rotateSphere", label: "Rotate Sphere" },
-  { id: "createSegment", label: "Create a Line Segment" },
-  { id: "createCircle", label: "Create a Circle" },
-
-  { id: "createBehindSpherePoint", label: "Create a Point Behind the Sphere" },
-  { id: "createLongerThanPiSegment", label: "Create a Line Segment Longer than π" },
-  { id: "moveObject", label: "Move an Object" },
-  { id: "measureSegment", label: "Measure a Line Segment" },
-  { id: "changeMeasurementUnits", label: "Change Measurement Units" },
-
-  { id: "createRightTriangle", label: "Create a Right Triangle" },
-  { id: "createEquilateralTriangle", label: "Create an Equilateral Triangle" }
-];
 
 // Filter the tour buttons based on the text entered in the search input.
 const filteredTours = computed(() => {
@@ -107,7 +83,6 @@ function closeTourTab(): void { isOpen.value = false; } // Called by the close b
 function selectTour(tourId: string): void { startTour(tourId); } // Called by the tour buttons to start a tour.
 
 function searchTours(): void { updateTourSearch(searchText.value); } // Passes the search text to UIFunctions.ts.
-
 
 </script>
 
