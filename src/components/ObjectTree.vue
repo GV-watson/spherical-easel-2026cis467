@@ -142,6 +142,7 @@
           class="my-3"
           v-show="showExpressionSheet">
           <SENoduleList
+            data-tour="gr-measurements"
             :label="t('measurements', seExpressions.length)"
             :children="seExpressions"></SENoduleList>
         </v-sheet>
