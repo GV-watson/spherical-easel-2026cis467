@@ -29,7 +29,7 @@
       <div class="tour-list">
         <button v-for="tour in filteredTours" :key="tour.id" type="button" class="tour-choice"
           @click="selectTour(tour.id)">
-          <span>{{ tour.label }}</span>
+          <span>{{ t(tour.labelKey) }}</span>
 
           <!-- Display a checkmark if the user has completed this tour. -->
           <span v-if="completedTours[tour.id]" class="tour-completed" title="Completed" aria-label="Completed">
@@ -54,9 +54,10 @@
 /* Displays the Tour panel and calls the tour functions exposed by UIFunctions.ts. */
 
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useUIFunctions } from "./UIFunctions";
 
-
+const { t } = useI18n();
 
 const {
   completedTours,
@@ -73,7 +74,9 @@ const searchText = ref("");  // The text entered in the search input to filter t
 // Filter the tour buttons based on the text entered in the search input.
 const filteredTours = computed(() => {
   const query = searchText.value.trim().toLowerCase();
-  return tours.filter((tour) => tour.label.toLowerCase().includes(query));
+  return tours.filter(tour =>
+    t(tour.labelKey).toLowerCase().includes(query),
+  );
 });
 
 function openTourTab(): void { isOpen.value = true; } // Called by the open button to show the tour panel.

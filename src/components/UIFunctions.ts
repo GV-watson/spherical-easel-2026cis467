@@ -8,21 +8,33 @@ import { useAccountStore } from "@/stores/account";
 import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
 import { SEPoint } from "@/models-spherical/SEPoint";
 import { SESegmentLength } from "@/models-spherical/SESegmentLength";
-
+import { useI18n } from "vue-i18n";
 
 // 1 Add new tours here when creating their definitions below.
 const tours = [
-  { id: "createPoint", label: "Create a Point" },
-  { id: "rotateSphere", label: "Rotate Sphere" },
-  { id: "createSegment", label: "Create a Line Segment" },
-  { id: "createCircle", label: "Create a Circle" },
-  { id: "createBehindSpherePoint", label: "Create a Point Behind the Sphere" },
-  { id: "createLongerThanPiSegment", label: "Create a Line Segment Longer than π" },
-  { id: "moveObject", label: "Move an Object" },
-  { id: "measureSegment", label: "Measure a Line Segment" },
-  { id: "changeMeasurementUnits", label: "Change Measurement Units" },
-  { id: "createRightTriangle", label: "Create a Right Triangle" },
-  { id: "createEquilateralTriangle", label: "Create an Equilateral Triangle" },
+  { id: "createPoint", labelKey: "tours.createPoint.label" },
+  { id: "rotateSphere", labelKey: "tours.rotateSphere.label" },
+  { id: "createSegment", labelKey: "tours.createSegment.label" },
+  { id: "createCircle", labelKey: "tours.createCircle.label" },
+  {
+    id: "createBehindSpherePoint",
+    labelKey: "tours.createBehindSpherePoint.label",
+  },
+  {
+    id: "createLongerThanPiSegment",
+    labelKey: "tours.createLongerThanPiSegment.label",
+  },
+  { id: "moveObject", labelKey: "tours.moveObject.label" },
+  { id: "measureSegment", labelKey: "tours.measureSegment.label" },
+  {
+    id: "changeMeasurementUnits",
+    labelKey: "tours.changeMeasurementUnits.label",
+  },
+  { id: "createRightTriangle", labelKey: "tours.createRightTriangle.label" },
+  {
+    id: "createEquilateralTriangle",
+    labelKey: "tours.createEquilateralTriangle.label",
+  },
 ] as const;
 
 
@@ -68,26 +80,26 @@ const tourDefinitions = {
   createPoint: [
     {
       element: '[data-tour="ta-tools"]',
-      title: "Tools Category",
-      description: "Click here to go to the Tools category (if not already).",
+      titleKey: "tours.createPoint.steps.1.title",
+      descriptionKey: "tours.createPoint.steps.1.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
-      title: "Basic Tools",
-      description: "Click here to open the Basic Tools section.",
+      titleKey: "tours.createPoint.steps.2.title",
+      descriptionKey: "tours.createPoint.steps.2.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="bu-point"]',
-      title: "Create Point",
-      description: "Click to select the Create Point Tool.",
+      titleKey: "tours.createPoint.steps.3.title",
+      descriptionKey: "tours.createPoint.steps.3.description",
       waitFor: click(),
     },
     {
       element: "#sphereContainer",
-      title: "Sphere Canvas",
-      description: "Place the point anywhere within the circle.\nYou have created a point!",
+      titleKey: "tours.createPoint.steps.4.title",
+      descriptionKey: "tours.createPoint.steps.4.description",
       waitFor: pointCreated(),
       //update firestore account 
       //if first time completeing tour when logged in send time when completed and completetion flag.
@@ -98,32 +110,32 @@ const tourDefinitions = {
   rotateSphere: [
     {
       element: "#app",
-      title: "Tour Prerequisite",
-      description: 'This tour requires an object on the sphere. Create a point, segment, or circle if you do not already have one.',
+      titleKey: "tours.rotateSphere.steps.1.title",
+      descriptionKey: "tours.rotateSphere.steps.1.description",
       waitFor: hasObject(),
     },
     {
       element: '[data-tour="ta-tools"]',
-      title: "Tools Category",
-      description: "Click here to go to the Tools category (if not already).",
+      titleKey: "tours.rotateSphere.steps.2.title",
+      descriptionKey: "tours.rotateSphere.steps.2.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-DisplayTools"]',
-      title: "Display Tools Category",
-      description: "Click here to enter the Display Tools category.",
+      titleKey: "tours.rotateSphere.steps.3.title",
+      descriptionKey: "tours.rotateSphere.steps.3.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="bu-rotate"]',
-      title: "Rotate Sphere Button",
-      description: "Click here to select the Rotate Sphere Button.",
+      titleKey: "tours.rotateSphere.steps.4.title",
+      descriptionKey: "tours.rotateSphere.steps.4.description",
       waitFor: click(),
     },
     {
       element: "#sphereContainer",
-      title: "Sphere Canvas",
-      description: "Click and drag anywhere on the canvas to rotate the sphere! Clicking and letting go with velocity will make the sphere spin! Have fun!",
+      titleKey: "tours.rotateSphere.steps.5.title",
+      descriptionKey: "tours.rotateSphere.steps.5.description",
       waitFor: sphereRotated(),
     },
   ],
@@ -131,26 +143,26 @@ const tourDefinitions = {
   createSegment: [
     {
       element: '[data-tour="ta-tools"]',
-      title: "Tools Category",
-      description: "Open the Tools category if it is not already selected.",
+      titleKey: "tours.createSegment.steps.1.title",
+      descriptionKey: "tours.createSegment.steps.1.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
-      title: "Basic Tools",
-      description: "Open the Basic Tools section.",
+      titleKey: "tours.createSegment.steps.2.title",
+      descriptionKey: "tours.createSegment.steps.2.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="bu-segment"]',
-      title: "Create Segment",
-      description: "Click to select the segment tool.",
+      titleKey: "tours.createSegment.steps.3.title",
+      descriptionKey: "tours.createSegment.steps.3.description",
       waitFor: click(),
     },
     {
       element: "#sphereContainer",
-      title: "Create a segment",
-      description: "Click two points on the sphere to create a segment, or click and drag to create a segment.",
+      titleKey: "tours.createSegment.steps.4.title",
+      descriptionKey: "tours.createSegment.steps.4.description",
       waitFor: segmentCreated(), // Wait for the user to create a segment before proceeding to the next step.
     },
   ],
@@ -159,26 +171,26 @@ const tourDefinitions = {
   createCircle: [
     {
       element: '[data-tour="ta-tools"]',
-      title: "Tools Category",
-      description: "Open the Tools category if it is not already selected.",
+      titleKey: "tours.createCircle.steps.1.title",
+      descriptionKey: "tours.createCircle.steps.1.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
-      title: "Basic Tools",
-      description: "Open the Basic Tools section.",
+      titleKey: "tours.createCircle.steps.2.title",
+      descriptionKey: "tours.createCircle.steps.2.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="bu-circle"]',
-      title: "Create Circle",
-      description: "Select the Create Circle tool.",
+      titleKey: "tours.createCircle.steps.3.title",
+      descriptionKey: "tours.createCircle.steps.3.description",
       waitFor: click(),
     },
     {
       element: "#sphereContainer",
-      title: "Sphere Canvas",
-      description: "Click two locations on the sphere to create a circle, or click and drag to create a circle.",
+      titleKey: "tours.createCircle.steps.4.title",
+      descriptionKey: "tours.createCircle.steps.4.description",
       waitFor: circleCreated(),
     },
   ],
@@ -187,26 +199,26 @@ const tourDefinitions = {
   createBehindSpherePoint: [
     {
       element: '[data-tour="ta-tools"]',
-      title: "Tools Category",
-      description: "Open the Tools category if it is not already selected.",
+      titleKey: "tours.createBehindSpherePoint.steps.1.title",
+      descriptionKey: "tours.createBehindSpherePoint.steps.1.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
-      title: "Basic Tools",
-      description: "Open the Basic Tools section.",
+      titleKey: "tours.createBehindSpherePoint.steps.2.title",
+      descriptionKey: "tours.createBehindSpherePoint.steps.2.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="bu-point"]',
-      title: "Create Point",
-      description: "Select the Create Point tool.",
+      titleKey: "tours.createBehindSpherePoint.steps.3.title",
+      descriptionKey: "tours.createBehindSpherePoint.steps.3.description",
       waitFor: click(),
     },
     {
       element: "#sphereContainer",
-      title: "Create a Point on the Back",
-      description: "Hold Shift and click on the sphere canvas to create a point on the back of the sphere.",
+      titleKey: "tours.createBehindSpherePoint.steps.4.title",
+      descriptionKey: "tours.createBehindSpherePoint.steps.4.description",
       waitFor: behindSpherePointCreated(),
     },
   ],
@@ -215,27 +227,27 @@ const tourDefinitions = {
   createLongerThanPiSegment: [
     {
       element: '[data-tour="ta-tools"]',
-      title: "Tools Category",
-      description: "Open the Tools category if it is not already selected.",
+      titleKey: "tours.createLongerThanPiSegment.steps.1.title",
+      descriptionKey: "tours.createLongerThanPiSegment.steps.1.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
-      title: "Basic Tools",
-      description: "Open the Basic Tools section.",
+      titleKey: "tours.createLongerThanPiSegment.steps.2.title",
+      descriptionKey: "tours.createLongerThanPiSegment.steps.2.description",
       waitFor: click(),
 
     },
     {
       element: '[data-tour="bu-segment"]',
-      title: "Create Segment",
-      description: "Click to select the segment tool.",
+      titleKey: "tours.createLongerThanPiSegment.steps.3.title",
+      descriptionKey: "tours.createLongerThanPiSegment.steps.3.description",
       waitFor: click(),
     },
     {
       element: '#sphereContainer',
-      title: "Create the Segment",
-      description: "While holding CTRL (control), click and drag from one location to another on the sphere to make the segment.",
+      titleKey: "tours.createLongerThanPiSegment.steps.4.title",
+      descriptionKey: "tours.createLongerThanPiSegment.steps.4.description",
       waitFor: longerThanPiSegmentCreated(),
     },
   ],
@@ -244,32 +256,32 @@ const tourDefinitions = {
   moveObject: [
     {
       element: "#app",
-      title: "Tour Prerequisite",
-      description: "This tour needs a movable point on the sphere. Create one if you do not already have one.",
+      titleKey: "tours.moveObject.steps.1.title",
+      descriptionKey: "tours.moveObject.steps.1.description",
       waitFor: hasMovablePoint(),
     },
     {
       element: '[data-tour="ta-tools"]',
-      title: "Tools Category",
-      description: "Open the Tools category if it is not already selected.",
+      titleKey: "tours.moveObject.steps.2.title",
+      descriptionKey: "tours.moveObject.steps.2.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-DisplayTools"]',
-      title: "Display Tools",
-      description: "Open the Display Tools section.",
+      titleKey: "tours.moveObject.steps.3.title",
+      descriptionKey: "tours.moveObject.steps.3.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="bu-move"]',
-      title: "Move Tool",
-      description: "Select the Move tool.",
+      titleKey: "tours.moveObject.steps.4.title",
+      descriptionKey: "tours.moveObject.steps.4.description",
       waitFor: click(),
     },
     {
       element: "#sphereContainer",
-      title: "Move an Object",
-      description: "Click and drag any movable object to a new location on the sphere.",
+      titleKey: "tours.moveObject.steps.5.title",
+      descriptionKey: "tours.moveObject.steps.5.description",
       waitFor: objectMoved(),
     },
   ],
@@ -277,50 +289,50 @@ const tourDefinitions = {
   measureSegment: [
     {
       element: '[data-tour="ta-tools"]',
-      title: "Tools Category",
-      description: "Open the Tools category if it is not already selected.",
+      titleKey: "tours.measureSegment.steps.1.title",
+      descriptionKey: "tours.measureSegment.steps.1.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
-      title: "Basic Tools",
-      description: "Open the Basic Tools section.",
+      titleKey: "tours.measureSegment.steps.2.title",
+      descriptionKey: "tours.measureSegment.steps.2.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="bu-segment"]',
-      title: "Create Segment",
-      description: "Select the Segment tool.",
+      titleKey: "tours.measureSegment.steps.3.title",
+      descriptionKey: "tours.measureSegment.steps.3.description",
       waitFor: click(),
     },
     {
       element: "#sphereContainer",
-      title: "Create a Segment",
-      description: "Click two locations on the sphere to create a line segment.",
+      titleKey: "tours.measureSegment.steps.4.title",
+      descriptionKey: "tours.measureSegment.steps.4.description",
       waitFor: segmentCreated(),
     },
     {
       element: '[data-tour="ta-tools"]',
-      title: "Tools Category",
-      description: "Open the Tools category.",
+      titleKey: "tours.measureSegment.steps.5.title",
+      descriptionKey: "tours.measureSegment.steps.5.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-MeasurementTools"]',
-      title: "Measurement Tools",
-      description: "Open the Measurement Tools section.",
+      titleKey: "tours.measureSegment.steps.6.title",
+      descriptionKey: "tours.measureSegment.steps.6.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="bu-segmentLength"]',
-      title: "Line Segment Length",
-      description: "Select the Line Segment Length tool.",
+      titleKey: "tours.measureSegment.steps.7.title",
+      descriptionKey: "tours.measureSegment.steps.7.description",
       waitFor: click(),
     },
     {
       element: "#sphereContainer",
-      title: "Measure the Segment",
-      description: "Click the segment you just created. Its length will appear on the sphere and in the Objects panel.",
+      titleKey: "tours.measureSegment.steps.8.title",
+      descriptionKey: "tours.measureSegment.steps.8.description",
       waitFor: measureSegment(),
     },
   ],
@@ -329,68 +341,68 @@ const tourDefinitions = {
   changeMeasurementUnits: [
     {
       element: '[data-tour="ta-tools"]',
-      title: "Tools Category",
-      description: "Open the Tools category if it is not already selected.",
+      titleKey: "tours.changeMeasurementUnits.steps.1.title",
+      descriptionKey: "tours.changeMeasurementUnits.steps.1.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
-      title: "Basic Tools",
-      description: "Open the Basic Tools section.",
+      titleKey: "tours.changeMeasurementUnits.steps.2.title",
+      descriptionKey: "tours.changeMeasurementUnits.steps.2.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="bu-segment"]',
-      title: "Create Segment",
-      description: "Select the Segment tool.",
+      titleKey: "tours.changeMeasurementUnits.steps.3.title",
+      descriptionKey: "tours.changeMeasurementUnits.steps.3.description",
       waitFor: click(),
     },
     {
       element: "#sphereContainer",
-      title: "Create a Segment",
-      description: "Click two locations on the sphere to create a line segment.",
+      titleKey: "tours.changeMeasurementUnits.steps.4.title",
+      descriptionKey: "tours.changeMeasurementUnits.steps.4.description",
       waitFor: segmentCreated(),
     },
     {
       element: '[data-tour="ta-tools"]',
-      title: "Tools Category",
-      description: "Open the Tools category if it is not already selected.",
+      titleKey: "tours.changeMeasurementUnits.steps.5.title",
+      descriptionKey: "tours.changeMeasurementUnits.steps.5.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-MeasurementTools"]',
-      title: "Measurement Tools",
-      description: "Open the Measurement Tools section.",
+      titleKey: "tours.changeMeasurementUnits.steps.6.title",
+      descriptionKey: "tours.changeMeasurementUnits.steps.6.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="bu-segmentLength"]',
-      title: "Line Segment Length",
-      description: "Select the Line Segment Length tool.",
+      titleKey: "tours.changeMeasurementUnits.steps.7.title",
+      descriptionKey: "tours.changeMeasurementUnits.steps.7.description",
       waitFor: click(),
     },
     {
       element: "#sphereContainer",
-      title: "Measure the Segment",
-      description: "Click the segment you just created. Its length measurement will appear.",
+      titleKey: "tours.changeMeasurementUnits.steps.8.title",
+      descriptionKey: "tours.changeMeasurementUnits.steps.8.description",
       waitFor: measureSegment(),
     },
     {
       element: '[data-tour="ta-obj"]',
-      title: "Objects Category",
-      description: "Open the Objects panel.",
+      titleKey: "tours.changeMeasurementUnits.steps.9.title",
+      descriptionKey: "tours.changeMeasurementUnits.steps.9.description",
       waitFor: click(),
     },
     {
       element: '[data-tour="gr-expression"]',
-      title: "Measurements Section",
-      description: "Open the Measurements section.",
+      titleKey: "tours.changeMeasurementUnits.steps.10.title",
+      descriptionKey: "tours.changeMeasurementUnits.steps.10.description",
       waitFor: click(),
     },
     {
       element: "#app",
-      title: "Change Units",
-      description: "Find the measurement you just created and click its change-units icon. The units cycle through decimals, multiples of Pi, and degrees.",
+      titleKey: "tours.changeMeasurementUnits.steps.11.title",
+      descriptionKey: "tours.changeMeasurementUnits.steps.11.description",
       waitFor: measurementUnitsChanged(),
     },
   ],
@@ -458,6 +470,7 @@ advanceTour() moves to the next step → completeTour() saves completion when th
 export function useUIFunctions() {
 
   // 1. INITIALIZE ENGINE
+  const { t } = useI18n();
   const completedTours = ref<Record<string, string>>({});
   const accountStore = useAccountStore();
   const seStore = useSEStore();
@@ -520,8 +533,8 @@ export function useUIFunctions() {
     return selectedTour.map((step, stepIndex) => ({
       element: step.element,
       popover: {
-        title: step.title,
-        description: step.description,
+        title: t(step.titleKey),
+        description: t(step.descriptionKey),
       },
       onHighlighted: (element?: Element) => {
         setCurrentStepIndex(stepIndex);
@@ -657,8 +670,8 @@ type WaitForFunction = (
 // and a reusable waitFor function that determines when the step is complete.
 type TourStep = {
   element: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   waitFor?: WaitForFunction;
 };
 
