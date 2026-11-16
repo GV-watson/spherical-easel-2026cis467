@@ -1,31 +1,17 @@
-
-﻿<template>
-  <!-- Mount the logic component so its exposed functions are available. -->
-  <UIFunctions ref="uiFunctions" />
-
+<template>
   <!-- The open button is hidden when the tour panel is open. -->
-  <button
-    v-if="!isOpen"
-    type="button"
-    class="tour-open-button"
-    aria-label="Open Tour menu"
-    title="Open Tour menu"
-    @click="openTourTab"
-  >
+  <button v-if="!isOpen" type="button" class="tour-open-button" aria-label="Open Tour menu" title="Open Tour menu"
+    @click="openTourTab">
     ?
   </button>
 
   <!-- The tour panel is hidden when the open button is visible. -->
   <section v-else class="tour-panel" aria-label="Guided tours">
     <header class="tour-header">
-      <h2>Tour</h2>
-      <button
-        type="button"
-        class="close-button"
-        aria-label="Close Tour menu"
-        title="Close Tour menu"
-        @click="closeTourTab"
-      >
+      <h2>Tour
+      </h2>
+      <button type="button" class="close-button" aria-label="Close Tour menu" title="Close Tour menu"
+        @click="closeTourTab">
         ^
       </button>
     </header>
@@ -33,27 +19,22 @@
     <!-- The search input is used to filter the list of tours. -->
     <div class="tour-search">
       <span class="search-icon">⌕</span>
-      <input
-        v-model="searchText"
-        type="text"
-        placeholder="Search For Tour"
-        aria-label="Search for tour"
-        @input="searchTours"
-      />
+      <input v-model="searchText" type="text" placeholder="Search For Tour" aria-label="Search for tour"
+        @input="searchTours" />
     </div>
 
     <!-- $$$$ Step 3 Create Tour Button $$$$-->
     <div class="tour-list-container">
 
       <div class="tour-list">
-        <button
-          v-for="tour in filteredTours"
-          :key="tour.id"
-          type="button"
-          class="tour-choice"
-          @click="selectTour(tour.id)"
-        >
-          {{ tour.label }}
+        <button v-for="tour in filteredTours" :key="tour.id" type="button" class="tour-choice"
+          @click="selectTour(tour.id)">
+          <span>{{ tour.label }}</span>
+
+          <!-- Display a checkmark if the user has completed this tour. -->
+          <span v-if="completedTours[tour.id]" class="tour-completed" title="Completed" aria-label="Completed">
+            ✓
+          </span>
         </button>
 
         <p v-if="filteredTours.length === 0" class="no-tours-found">
@@ -70,21 +51,24 @@
 <script setup lang="ts">
 /*///////////////////////////////////////////////////////////// Spherical Easel TypeScript ///////////////////////////////////////////////////////////////////////////////////////////*/
 
-/* Displays the Tour panel and calls the tour functions exposed by UIFunctions.vue. */
+/* Displays the Tour panel and calls the tour functions exposed by UIFunctions.ts. */
 
 import { computed, ref } from "vue";
-import UIFunctions from "./UIFunctions.vue";
+import { useUIFunctions } from "./UIFunctions";
+
+
+
+const {
+  completedTours,
+  tours,
+  selectTour: startTour,
+  searchTours: updateTourSearch
+} = useUIFunctions();
+
 
 const isOpen = ref(false); // Controls whether the tour panel is open or closed.
 const searchText = ref("");  // The text entered in the search input to filter the list of tours.
 
-// The available tours and the labels displayed in the Tour panel.
-const tours = [
-  { id: "createPoint", label: "Create a Point" },
-  { id: "rotateSphere", label: "Rotate Sphere" },
-  { id: "createSegment", label: "Create a Line Segment" },
-  { id: "createCircle", label: "Create a Circle" },
-];
 
 // Filter the tour buttons based on the text entered in the search input.
 const filteredTours = computed(() => {
@@ -92,19 +76,13 @@ const filteredTours = computed(() => {
   return tours.filter((tour) => tour.label.toLowerCase().includes(query));
 });
 
-// The ref to the UIFunctions component, which exposes the selectTour and searchTours functions. */
-const uiFunctions = ref<{
-  selectTour: (tourId: string) => void; // Called by the tour buttons to start a tour.
-  searchTours: (query: string) => void; // Called by the search input. The text is passed to the child component.
-} | null>(null); 
-
 function openTourTab(): void { isOpen.value = true; } // Called by the open button to show the tour panel.
 
 function closeTourTab(): void { isOpen.value = false; } // Called by the close button to hide the tour panel.
 
-function selectTour(tourId: string): void { uiFunctions.value?.selectTour(tourId); } // Called by the tour buttons to start a tour.
+function selectTour(tourId: string): void { startTour(tourId); } // Called by the tour buttons to start a tour.
 
-function searchTours(): void { uiFunctions.value?.searchTours(searchText.value); } // Passes the search text to UIFunctions.vue.
+function searchTours(): void { updateTourSearch(searchText.value); } // Passes the search text to UIFunctions.ts.
 
 </script>
 
@@ -225,6 +203,16 @@ function searchTours(): void { uiFunctions.value?.searchTours(searchText.value);
   cursor: pointer;
   font-size: 14px;
   border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tour-completed {
+  color: #167a32;
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 10px;
 }
 
 .tour-choice:hover {
