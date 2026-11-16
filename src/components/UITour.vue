@@ -47,7 +47,261 @@
     </div>
   </section>
 </template>
-
+<i18n locale="en">
+  {
+    "tours": {
+      "createPoint": {
+        "label": "Create a Point",
+        "steps": {
+          "1": {
+            "title": "Tools Category",
+            "description": "Click here to go to the Tools category (if not already)."
+          },
+          "2": {
+            "title": "Basic Tools",
+            "description": "Click here to open the Basic Tools section."
+          },
+          "3": {
+            "title": "Create Point",
+            "description": "Click to select the Create Point Tool."
+          },
+          "4": {
+            "title": "Sphere Canvas",
+            "description": "Place the point anywhere within the circle.\nYou have created a point!"
+          }
+        }
+      },
+      "rotateSphere": {
+        "label": "Rotate Sphere",
+        "steps": {
+          "1": {
+            "title": "Tour Prerequisite",
+            "description": "This tour requires an object on the sphere. Create a point, segment, or circle if you do not already have one."
+          },
+          "2": {
+            "title": "Tools Category",
+            "description": "Click here to go to the Tools category (if not already)."
+          },
+          "3": {
+            "title": "Display Tools Category",
+            "description": "Click here to enter the Display Tools category."
+          },
+          "4": {
+            "title": "Rotate Sphere Button",
+            "description": "Click here to select the Rotate Sphere Button."
+          },
+          "5": {
+            "title": "Sphere Canvas",
+            "description": "Click and drag anywhere on the canvas to rotate the sphere! Clicking and letting go with velocity will make the sphere spin! Have fun!"
+          }
+        }
+      },
+      "createSegment": {
+        "label": "Create a Line Segment",
+        "steps": {
+          "1": {
+            "title": "Tools Category",
+            "description": "Open the Tools category if it is not already selected."
+          },
+          "2": {
+            "title": "Basic Tools",
+            "description": "Open the Basic Tools section."
+          },
+          "3": {
+            "title": "Create Segment",
+            "description": "Click to select the segment tool."
+          },
+          "4": {
+            "title": "Create a segment",
+            "description": "Click two points on the sphere to create a segment, or click and drag to create a segment."
+          }
+        }
+      },
+      "createCircle": {
+        "label": "Create a Circle",
+        "steps": {
+          "1": {
+            "title": "Tools Category",
+            "description": "Open the Tools category if it is not already selected."
+          },
+          "2": {
+            "title": "Basic Tools",
+            "description": "Open the Basic Tools section."
+          },
+          "3": {
+            "title": "Create Circle",
+            "description": "Select the Create Circle tool."
+          },
+          "4": {
+            "title": "Sphere Canvas",
+            "description": "Click two locations on the sphere to create a circle, or click and drag to create a circle."
+          }
+        }
+      },
+      "createBehindSpherePoint": {
+        "label": "Create a Point Behind the Sphere",
+        "steps": {
+          "1": {
+            "title": "Tools Category",
+            "description": "Open the Tools category if it is not already selected."
+          },
+          "2": {
+            "title": "Basic Tools",
+            "description": "Open the Basic Tools section."
+          },
+          "3": {
+            "title": "Create Point",
+            "description": "Select the Create Point tool."
+          },
+          "4": {
+            "title": "Create a Point on the Back",
+            "description": "Hold Shift and click on the sphere canvas to create a point on the back of the sphere."
+          }
+        }
+      },
+      "createLongerThanPiSegment": {
+        "label": "Create a Line Segment Longer than π",
+        "steps": {
+          "1": {
+            "title": "Tools Category",
+            "description": "Open the Tools category if it is not already selected."
+          },
+          "2": {
+            "title": "Basic Tools",
+            "description": "Open the Basic Tools section."
+          },
+          "3": {
+            "title": "Create Segment",
+            "description": "Click to select the segment tool."
+          },
+          "4": {
+            "title": "Create the Segment",
+            "description": "While holding CTRL (control), click and drag from one location to another on the sphere to make the segment."
+          }
+        }
+      },
+      "moveObject": {
+        "label": "Move an Object",
+        "steps": {
+          "1": {
+            "title": "Tour Prerequisite",
+            "description": "This tour needs a movable point on the sphere. Create one if you do not already have one."
+          },
+          "2": {
+            "title": "Tools Category",
+            "description": "Open the Tools category if it is not already selected."
+          },
+          "3": {
+            "title": "Display Tools",
+            "description": "Open the Display Tools section."
+          },
+          "4": {
+            "title": "Move Tool",
+            "description": "Select the Move tool."
+          },
+          "5": {
+            "title": "Move an Object",
+            "description": "Click and drag any movable object to a new location on the sphere."
+          }
+        }
+      },
+      "measureSegment": {
+        "label": "Measure a Line Segment",
+        "steps": {
+          "1": {
+            "title": "Tools Category",
+            "description": "Open the Tools category if it is not already selected."
+          },
+          "2": {
+            "title": "Basic Tools",
+            "description": "Open the Basic Tools section."
+          },
+          "3": {
+            "title": "Create Segment",
+            "description": "Select the Segment tool."
+          },
+          "4": {
+            "title": "Create a Segment",
+            "description": "Click two locations on the sphere to create a line segment."
+          },
+          "5": {
+            "title": "Tools Category",
+            "description": "Open the Tools category."
+          },
+          "6": {
+            "title": "Measurement Tools",
+            "description": "Open the Measurement Tools section."
+          },
+          "7": {
+            "title": "Line Segment Length",
+            "description": "Select the Line Segment Length tool."
+          },
+          "8": {
+            "title": "Measure the Segment",
+            "description": "Click the segment you just created. Its length will appear on the sphere and in the Objects panel."
+          }
+        }
+      },
+      "changeMeasurementUnits": {
+        "label": "Change Measurement Units",
+        "steps": {
+          "1": {
+            "title": "Tools Category",
+            "description": "Open the Tools category if it is not already selected."
+          },
+          "2": {
+            "title": "Basic Tools",
+            "description": "Open the Basic Tools section."
+          },
+          "3": {
+            "title": "Create Segment",
+            "description": "Select the Segment tool."
+          },
+          "4": {
+            "title": "Create a Segment",
+            "description": "Click two locations on the sphere to create a line segment."
+          },
+          "5": {
+            "title": "Tools Category",
+            "description": "Open the Tools category if it is not already selected."
+          },
+          "6": {
+            "title": "Measurement Tools",
+            "description": "Open the Measurement Tools section."
+          },
+          "7": {
+            "title": "Line Segment Length",
+            "description": "Select the Line Segment Length tool."
+          },
+          "8": {
+            "title": "Measure the Segment",
+            "description": "Click the segment you just created. Its length measurement will appear."
+          },
+          "9": {
+            "title": "Objects Category",
+            "description": "Open the Objects panel."
+          },
+          "10": {
+            "title": "Measurements Section",
+            "description": "Open the Measurements section."
+          },
+          "11": {
+            "title": "Change Units",
+            "description": "Find the measurement you just created and click its change-units icon. The units cycle through decimals, multiples of Pi, and degrees."
+          }
+        }
+      },
+      "createRightTriangle": {
+        "label": "Create a Right Triangle",
+        "steps": {}
+      },
+      "createEquilateralTriangle": {
+        "label": "Create an Equilateral Triangle",
+        "steps": {}
+      }
+    }
+  }
+</i18n>
 <script setup lang="ts">
 /*///////////////////////////////////////////////////////////// Spherical Easel TypeScript ///////////////////////////////////////////////////////////////////////////////////////////*/
 
