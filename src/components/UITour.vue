@@ -47,6 +47,7 @@
     </div>
   </section>
 </template>
+<!-- Translation keys for the tours -->
 <i18n locale="en">
   {
     "tours": {
