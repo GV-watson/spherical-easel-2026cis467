@@ -305,17 +305,16 @@
 
 /* Displays the Tour panel and calls the tour functions exposed by tourEngine.ts. */
 
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 import { useTourEngine } from "@/stores/tourEngine";
 
 const { t } = useI18n();
 const tourEngine = useTourEngine();
-const { completedTours } = storeToRefs(tourEngine);
+const { completedTours, filteredTours } = storeToRefs(tourEngine);
 
 const {
-  tours,
   selectTour: startTour,
   searchTours: updateTourSearch
 } = tourEngine;
@@ -324,17 +323,6 @@ const {
 const isOpen = ref(false); // Controls whether the tour panel is open or closed.
 const searchText = ref("");  // The text entered in the search input to filter the list of tours.
 
-
-// Filter the tour buttons based on the text entered in the search input.
-const filteredTours = computed(() => {
-  const query = searchText.value.trim().toLowerCase();
-  return tours
-    .map(tour => ({
-      id: tour.id,
-      labelKey: "labelKey" in tour ? tour.labelKey : `tours.${tour.id}.label`
-    }))
-    .filter(tour => t(tour.labelKey).toLowerCase().includes(query));
-});
 
 function openTourTab(): void { isOpen.value = true; } // Called by the open button to show the tour panel.
 
