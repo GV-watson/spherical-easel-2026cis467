@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
@@ -67,6 +67,7 @@ export const useTourEngine = defineStore("tourEngine", () => {
     // 1. INITIALIZE ENGINE
     const { t } = useI18n();
     const completedTours = ref<Record<string, string>>({});
+    const searchQuery = ref("");
     const accountStore = useAccountStore();
     const seStore = useSEStore();
     const appDB = getFirestore();
@@ -128,8 +129,8 @@ export const useTourEngine = defineStore("tourEngine", () => {
         return selectedTour.map((step, stepIndex) => ({
             element: step.element,
             popover: {
-                title: step.titleKey ? t(step.titleKey) : step.title,
-                description: step.descriptionKey ? t(step.descriptionKey) : step.description,
+                title: t(step.titleKey),
+                description: t(step.descriptionKey),
                 onNextClick: () => advanceTour(false),
             },
             onHighlighted: (element?: Element) => {
@@ -232,15 +233,27 @@ export const useTourEngine = defineStore("tourEngine", () => {
     }
 
     // 6. SEARCH FUNCTIONALITY
-    // Search filtering is currently owned by UITour.vue.
+    const filteredTours = computed(() => {
+        const query = searchQuery.value.trim().toLowerCase();
+        return tours
+            .map(tour => ({
+                id: tour.id,
+                labelKey: "labelKey" in tour ? tour.labelKey : `tours.${tour.id}.label`,
+            }))
+            .filter(tour => t(tour.labelKey).toLowerCase().includes(query));
+    });
+
+
+    // Update the query used to filter the available tours.
     function searchTours(query: string): void {
-        console.debug("Tour search:", query);
+        searchQuery.value = query;
     }
 
     // 7. EXPOSE FUNCTIONS
     //Return the functions to the parent component (UITour.vue).
     return {
         completedTours,
+        filteredTours,
         loadCompletedTours,
         saveTourCompletion,
         selectTour,
