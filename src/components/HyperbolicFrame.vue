@@ -1,11 +1,9 @@
 <template>
-  <span
-    id="cursorInfo"
-    :style="{
-      position: 'fixed',
-      backgroundColor: '#FFF7',
-      color: isOutside ? 'grey' : 'black'
-    }">
+  <span id="cursorInfo" :style="{
+    position: 'fixed',
+    backgroundColor: '#FFF7',
+    color: isOutside ? 'grey' : 'black'
+  }">
     <span class="mx-2">
       Keys
       <v-icon :color="shiftKey ? 'black' : '#0002'">
@@ -50,29 +48,25 @@
       <li>Location of world point in the camera coordinate system</li>
     </ul>
   </v-tooltip>
-  <div
-    :style="{
-      position: 'fixed',
-      bottom: '64px',
-      left: '384px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'flex-start'
-    }">
+  <div :style="{
+    position: 'fixed',
+    bottom: '64px',
+    left: '384px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start'
+  }">
     <v-hover open-delay="250" close-delay="250">
       <template #default="{ props }">
-        <div
-          v-bind="props"
-          :style="{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start'
-          }">
+        <div v-bind="props" :style="{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start'
+        }">
           <v-btn-toggle v-model="visibleLayers" multiple>
             <v-btn icon color="orange" value="lowerSheet">
               <!-- Use CSS trick to rotate the semicircle icon to look like lower sheet :-) -->
-              <v-icon
-                :style="{ transform: ' translateY(0.3em) rotate(90deg)' }">
+              <v-icon :style="{ transform: ' translateY(0.3em) rotate(90deg)' }">
                 mdi-circle-half
               </v-icon>
             </v-btn>
@@ -90,14 +84,10 @@
       </template>
     </v-hover>
   </div>
-  <canvas
-    ref="webGPUCanvas"
-    id="webGPUCanvas"
-    :width="props.availableWidth"
-    :height="props.availableHeight" />
+  <canvas ref="webGPUCanvas" id="webGPUCanvas" :width="props.availableWidth" :height="props.availableHeight" />
 </template>
 <style lang="css" scoped>
-ul > ul {
+ul>ul {
   margin-left: 1em;
 }
 </style>
@@ -875,7 +865,7 @@ function updateView() {
     zUpperClip.value =
       Math.tan(
         (((SETTINGS.maxFieldOfView - SETTINGS.angularBorder) / 2) * Math.PI) /
-          180
+        180
       ) *
       cameraController.distance *
       Math.sqrt(1 / 2);
@@ -904,11 +894,11 @@ function updateView() {
     // (Pi/2 - polar) and polar have the same zCoordLookAt value
     zCoordLookAt =
       (1 / Math.PI) *
-        Math.min(
-          cameraController.polarAngle,
-          Math.PI - cameraController.polarAngle
-        ) *
-        (zUpperClip.value - 1) +
+      Math.min(
+        cameraController.polarAngle,
+        Math.PI - cameraController.polarAngle
+      ) *
+      (zUpperClip.value - 1) +
       1;
   }
 
@@ -966,7 +956,7 @@ function updateView() {
   const tempDir = new Vector3();
   if (
     currentCameraPosition.x * currentCameraPosition.x +
-      currentCameraPosition.y * currentCameraPosition.y >
+    currentCameraPosition.y * currentCameraPosition.y >
     0.0001
   ) {
     tempDir.x = -currentCameraPosition.y;

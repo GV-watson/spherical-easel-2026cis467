@@ -3,8 +3,6 @@
   {
     "tours": {
       
-
-
       "create_Demo": {
         "label": "Create a Demo", 
          "steps": {
@@ -43,7 +41,7 @@
         }
       },
 
-      "rotate_Sphere": {
+      "rotateSphere": {
         "label": "Rotate Sphere",
         "steps": {
           "1": {
@@ -348,7 +346,7 @@ function searchTours(): void { updateTourSearch(searchText.value); } // Passes t
   <!-- The tour panel is hidden when the open button is visible. -->
   <section v-else class="tour-panel" aria-label="Guided tours">
     <header class="tour-header">
-      <h2>Tour
+      <h2>Tours
       </h2>
       <button type="button" class="close-button" aria-label="Close Tour menu" title="Close Tour menu"
         @click="closeTourTab">

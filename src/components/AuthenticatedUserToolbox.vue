@@ -10,6 +10,13 @@
       {{ userDisplayedName }}
       <v-tooltip activator="parent" text="Click to toggle short/long name"></v-tooltip>
     </span>
+
+    <!-- Tours Mode -->
+    <v-btn icon size="x-small" class="bg-green-lighten-1" @click="toggleTutorialMode">
+      <v-icon color="black">mdi-help</v-icon>
+      <v-tooltip activator="parent" text="Open Tutorial"></v-tooltip>
+    </v-btn>
+
     <v-btn icon size="x-small" class="bg-green-lighten-1" @click="switchGeometryMode">
       <v-icon color="black">mdi-calculator</v-icon>
       <v-tooltip activator="parent">
@@ -23,8 +30,8 @@
 
       <v-icon size="x-large" v-else>mdi-account</v-icon>
       <v-tooltip activator="parent" :text="firebaseUid
-          ? `Logout ${userEmail} ${firebaseUid.substring(0, 8)}`
-          : 'Login'
+        ? `Logout ${userEmail} ${firebaseUid.substring(0, 8)}`
+        : 'Login'
         "></v-tooltip>
     </v-btn>
     <router-link to="/settings/" v-if="firebaseUid">
@@ -52,8 +59,8 @@
     </HintButton>
   </div>
   <Dialog ref="saveConstructionDialog" :title="isSavedAsPublicConstruction
-      ? t('savePublicConstructionDialogTitle')
-      : t('savePrivateConstructionDialogTitle')
+    ? t('savePublicConstructionDialogTitle')
+    : t('savePrivateConstructionDialogTitle')
     " :yes-text="t('saveAction')" :no-text="t('cancelAction')" :yes-action="doSave" max-width="40%">
     <!-- Wrapper div to prevent scrolling in the main dialog -->
     <div style="overflow: visible; max-height: none">
@@ -774,6 +781,18 @@ function switchGeometryMode() {
     geometryMode.value = "spherical";
   }
 }
+
+//Tours Toggle button 
+let returnPath = "/";
+function toggleTutorialMode() {
+  if (router.currentRoute.value.path === "/tutorial") {
+    router.replace(returnPath);
+  } else {
+    returnPath = router.currentRoute.value.path;
+    router.replace("/tutorial");
+  }
+}
+
 // function previewOrDefault(dataUrl: string | undefined): string {
 //   return dataUrl ? dataUrl : "/logo.png";
 // }

@@ -717,26 +717,27 @@ export const tourDefinitions = {
       element: "#app",
       titleKey: "tours.changeMeasurementUnits.steps.11.title",
       descriptionKey: "tours.changeMeasurementUnits.steps.11.description",
-      // Advance when an existing segment-length measurement's displayed value changes.
+      // Advance when an existing segment-length measurement's display units change.
       waitFor: (seStore, advanceTour) => {
-        const startingValues = new Map(
-          getSegmentMeasurements(seStore).map(measurement => [measurement.id, measurement.value] as const),
-        );
-        const stopWatching = watch(
-          () => getSegmentMeasurements(seStore).map(
-            measurement => [measurement.id, measurement.value] as const,
+        const startingModes = new Map(
+          getSegmentMeasurements(seStore).map(
+            measurement => [measurement.id, measurement.valueDisplayMode] as const,
           ),
-          currentMeasurements => {
-            const unitsChanged = currentMeasurements.some(
-              ([id, value]) => startingValues.has(id) && startingValues.get(id) !== value,
-            );
-            if (unitsChanged) {
-              stopWatching();
-              advanceTour();
-            }
-          },
         );
-        return stopWatching;
+        // The measurement models are class instances, so Vue doesn't observe their unit-mode mutations.
+        const timer = setInterval(() => {
+          const unitsChanged = getSegmentMeasurements(seStore).some(
+            measurement =>
+              startingModes.has(measurement.id) &&
+              startingModes.get(measurement.id) !== measurement.valueDisplayMode,
+          );
+          if (unitsChanged) {
+            clearInterval(timer);
+            advanceTour();
+          }
+        }, 100);
+
+        return () => clearInterval(timer);
       },
     },
   ],

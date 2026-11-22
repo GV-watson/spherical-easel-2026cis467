@@ -5,20 +5,11 @@
   <!-- <CurrentToolSelection/> -->
 
   <v-app>
-    <v-navigation-drawer
-      fixed
-      :mobile="false"
-      :expand-on-hover="expandOnHover"
-      disable-resize-watcher
-      :rail="rail"
-      :rail-width="56"
-      @mouseover="onNavigationHover"
-      @mouseleave="onNavigationHover"
+    <v-navigation-drawer fixed :mobile="false" :expand-on-hover="expandOnHover" disable-resize-watcher :rail="rail"
+      :rail-width="56" @mouseover="onNavigationHover" @mouseleave="onNavigationHover"
       style="background-color: #002108; color: white">
       <v-list>
-        <v-list-item
-          prepend-avatar="@/assets/LogoAnimatedSmallerV3.svg"
-          title="Spherical Easel">
+        <v-list-item prepend-avatar="@/assets/LogoAnimatedSmallerV3.svg" title="Spherical Easel">
           <!-- <template v-slot:prepend>
               <v-icon>
                 <svg
@@ -34,48 +25,27 @@
       </v-list>
       <v-divider color="#BDF3CB"></v-divider>
 
-      <v-list
-        v-if="bigDrawerVisible"
-        density="compact"
-        v-model:selected="activeItem"
-        open-strategy="single"
-        nav
+      <v-list v-if="bigDrawerVisible" density="compact" v-model:selected="activeItem" open-strategy="single" nav
         active-class="active">
-        <v-list-item
-          data-tour="ta-tools"
-          @click="setHover"
-          prepend-icon="$toolsTab"
-          title="Tools"
+
+        <v-list-item data-tour="ta-tools" @click="setHover" prepend-icon="$toolsTab" title="Tools"
           value="tools"></v-list-item>
-        <v-list-item
-          data-tour="ta-obj"
-          @click="setHover"
-          prepend-icon="$objectsTab"
-          title="Objects"
+        <v-list-item data-tour="ta-obj" @click="setHover" prepend-icon="$objectsTab" title="Objects"
           value="objects"></v-list-item>
-        <v-list-item
-          data-tour="ta-construction"
-          @click="setHover"
-          prepend-icon="$constructionsTab"
-          title="Construction"
+        <v-list-item data-tour="ta-construction" @click="setHover" prepend-icon="$constructionsTab" title="Construction"
           value="constructions"></v-list-item>
-        <v-list-item
-          v-if="appFeature === 'beta'"
-          @click="setHover"
-          prepend-icon="$earthTab"
-          title="Earth"
+        <v-list-item v-if="appFeature === 'beta'" @click="setHover" prepend-icon="$earthTab" title="Earth"
           value="earth"></v-list-item>
       </v-list>
 
       <template v-slot:append>
-        <div
-          :style="{
-            display: 'flex',
-            flexDirection: 'column',
-            marginLeft: mouseOnDrawer ? '18px' : '0px',
-            marginBottom: '8px',
-            alignItems: mouseOnDrawer ? 'flex-start' : 'center'
-          }">
+        <div :style="{
+          display: 'flex',
+          flexDirection: 'column',
+          marginLeft: mouseOnDrawer ? '18px' : '0px',
+          marginBottom: '8px',
+          alignItems: mouseOnDrawer ? 'flex-start' : 'center'
+        }">
           <AuthenticatedUserToolbox :expanded-view="mouseOnDrawer" />
           <LanguageSelector />
           <template v-if="!inProductionMode">
@@ -84,22 +54,16 @@
               <v-icon id="firebase-gc" size="x-large" color="orange">
                 mdi-cloud-circle
               </v-icon>
-              <v-tooltip
-                activator="#firebase-gc"
-                text="Firebase Cleaner"></v-tooltip>
+              <v-tooltip activator="#firebase-gc" text="Firebase Cleaner"></v-tooltip>
             </router-link>
           </template>
         </div>
       </template>
     </v-navigation-drawer>
-    <v-navigation-drawer
-      width="320"
-      @update:model-value="navigationMonitor"
-      :style="{
-        backgroundColor: '#B9D9C1',
-        border: show ? '' : '0px'
-      }"
-      style="padding-left: 8px; padding-top: 8px">
+    <v-navigation-drawer width="320" @update:model-value="navigationMonitor" :style="{
+      backgroundColor: '#B9D9C1',
+      border: show ? '' : '0px'
+    }" style="padding-left: 8px; padding-top: 8px">
       <!-- <span>{{headerItem[activeItem[0]]  }}</span> -->
       <ToolGroups v-if="activeItem[0] === 'tools'" />
       <ObjectTree v-if="activeItem[0] === 'objects'" />
