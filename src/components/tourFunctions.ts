@@ -37,7 +37,7 @@ export const tourDefinitions = {
       element: '[data-tour="bu-point"]',
       titleKey: "tours.create_Demo.steps.1.title",
       descriptionKey: "tours.create_Demo.steps.1.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-point"]'),
     },
     {
       element: "#sphereContainer",
@@ -48,81 +48,342 @@ export const tourDefinitions = {
   ],
   */
 
+  // Move an existing geometric object.
+  moveObject: [
+    {
+      element: "#app",
+      titleKey: "tours.moveObject.steps.1.title",
+      descriptionKey: "tours.moveObject.steps.1.description",
+      // Advance once a point exists, or wait for the user to create one.
+      waitFor: (seStore, advanceTour) => watchForExistingCondition(
+        () =>
+          seStore.sePoints.length > 0 ||
+          seStore.seSegments.length > 0 ||
+          seStore.seCircles.length > 0,
+        advanceTour,
+      ),
+    },
+    {
+      element: '[data-tour="gr-DisplayTools"]',
+      titleKey: "tours.moveObject.steps.3.title",
+      descriptionKey: "tours.moveObject.steps.3.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-DisplayTools"]'),
+    },
+    {
+      element: '[data-tour="bu-move"]',
+      titleKey: "tours.moveObject.steps.4.title",
+      descriptionKey: "tours.moveObject.steps.4.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-move"]'),
+    },
+    {
+      element: "#sphereContainer",
+      titleKey: "tours.moveObject.steps.5.title",
+      descriptionKey: "tours.moveObject.steps.5.description",
+      // Advance when the position of a point that existed at the start of this step changes.
+      waitFor: (seStore, advanceTour) => {
+        const startingPositions = new Map(
+          seStore.sePoints.map(point => [point.id, point.locationVector.toArray().join(",")]),
+        );
+        // Point positions are Three.js Vector3 values mutated in place, so Vue's watch won't detect changes.
+        const timer = setInterval(() => {
+          const moved = seStore.sePoints.some(point =>
+            startingPositions.has(point.id) &&
+            startingPositions.get(point.id) !== point.locationVector.toArray().join(","),
+          );
+          if (moved) {
+            clearInterval(timer);
+            advanceTour();
+          }
+        }, 100);
+
+        return () => clearInterval(timer);
+      },
+    },
+  ],
+
+  rotateSphere: [
+    {
+      element: "#app",
+      titleKey: "tours.rotateSphere.steps.1.title",
+      descriptionKey: "tours.rotateSphere.steps.1.description",
+      // Advance once a point exists, or wait for the user to create one.
+      waitFor: (seStore, advanceTour) => watchForExistingCondition(
+        () =>
+          seStore.sePoints.length > 0 ||
+          seStore.seSegments.length > 0 ||
+          seStore.seCircles.length > 0,
+        advanceTour,
+      ),
+    },
+    {
+      element: '[data-tour="gr-DisplayTools"]',
+      titleKey: "tours.rotateSphere.steps.3.title",
+      descriptionKey: "tours.rotateSphere.steps.3.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-DisplayTools"]'),
+    },
+    {
+      element: '[data-tour="bu-rotate"]',
+      titleKey: "tours.rotateSphere.steps.4.title",
+      descriptionKey: "tours.rotateSphere.steps.4.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-rotate"]'),
+    },
+    {
+      element: "#sphereContainer",
+      titleKey: "tours.rotateSphere.steps.5.title",
+      descriptionKey: "tours.rotateSphere.steps.5.description",
+      // Advance when the sphere's rotation matrix changes.
+      waitFor: (seStore, advanceTour) => {
+        const startingRotation = seStore.inverseTotalRotationMatrix.elements.join(",");
+        const stopWatching = watch(
+          () => seStore.inverseTotalRotationMatrix.elements.join(","),
+          currentRotation => {
+            if (currentRotation !== startingRotation) {
+              stopWatching();
+              advanceTour();
+            }
+          },
+        );
+        return stopWatching;
+      },
+    },
+  ],
+
+  createSegment: [
+    {
+      element: '[data-tour="ta-tools"]',
+      titleKey: "tours.createSegment.steps.1.title",
+      descriptionKey: "tours.createSegment.steps.1.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
+    },
+    {
+      element: '[data-tour="gr-BasicTools"]',
+      titleKey: "tours.createSegment.steps.2.title",
+      descriptionKey: "tours.createSegment.steps.2.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-BasicTools"]'),
+    },
+    {
+      element: '[data-tour="bu-segment"]',
+      titleKey: "tours.createSegment.steps.3.title",
+      descriptionKey: "tours.createSegment.steps.3.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-segment"]'),
+    },
+    {
+      element: "#sphereContainer",
+      titleKey: "tours.createSegment.steps.4.title",
+      descriptionKey: "tours.createSegment.steps.4.description",
+      waitFor: segmentCreated(),
+    },
+  ],
+
+
+
+  createCircle: [
+    {
+      element: '[data-tour="ta-tools"]',
+      titleKey: "tours.createCircle.steps.1.title",
+      descriptionKey: "tours.createCircle.steps.1.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
+    },
+    {
+      element: '[data-tour="gr-BasicTools"]',
+      titleKey: "tours.createCircle.steps.2.title",
+      descriptionKey: "tours.createCircle.steps.2.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-BasicTools"]'),
+    },
+    {
+      element: '[data-tour="bu-circle"]',
+      titleKey: "tours.createCircle.steps.3.title",
+      descriptionKey: "tours.createCircle.steps.3.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-circle"]'),
+    },
+    {
+      element: "#sphereContainer",
+      titleKey: "tours.createCircle.steps.4.title",
+      descriptionKey: "tours.createCircle.steps.4.description",
+      waitFor: circleCreated(),
+    },
+  ],
+
 
 
   // Construct a right triangle using a perpendicular line.
   createRightTriangle: [
-    {
+    /*{
       element: "#sphereContainer",
       titleKey: "tours.createRightTriangle.steps.1.title",
       descriptionKey: "tours.createRightTriangle.steps.1.description",
-      waitFor: hasSegment(),
+      // Advance once at least one segment exists, or wait for the user to create one.
+      waitFor: (seStore, advanceTour) => watchForExistingCondition(
+        () => seStore.seSegments.length > 0,
+        advanceTour,
+      ),
+    },*/
+    {
+      element: '[data-tour="ta-tools"]',
+      titleKey: "tours.createSegment.steps.1.title",
+      descriptionKey: "tours.createSegment.steps.1.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
+    },
+    {
+      element: '[data-tour="gr-BasicTools"]',
+      titleKey: "tours.createSegment.steps.2.title",
+      descriptionKey: "tours.createSegment.steps.2.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-BasicTools"]'),
+    },
+    {
+      element: '[data-tour="bu-segment"]',
+      titleKey: "tours.createSegment.steps.3.title",
+      descriptionKey: "tours.createSegment.steps.3.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-segment"]'),
+    },
+    {
+      element: "#sphereContainer",
+      titleKey: "tours.createSegment.steps.4.title",
+      descriptionKey: "tours.createSegment.steps.4.description",
+      waitFor: segmentCreated(),
     },
     {
       element: '[data-tour="ta-tools"]',
       titleKey: "tours.createRightTriangle.steps.2.title",
       descriptionKey: "tours.createRightTriangle.steps.2.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
     },
     {
       element: '[data-tour="gr-ConstructionTools"]',
       titleKey: "tours.createRightTriangle.steps.3.title",
       descriptionKey: "tours.createRightTriangle.steps.3.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-ConstructionTools"]'),
     },
     {
       element: '[data-tour="bu-perpendicular"]',
       titleKey: "tours.createRightTriangle.steps.4.title",
       descriptionKey: "tours.createRightTriangle.steps.4.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-perpendicular"]'),
     },
     {
       element: "#sphereContainer",
       titleKey: "tours.createRightTriangle.steps.5.title",
       descriptionKey: "tours.createRightTriangle.steps.5.description",
-      waitFor: rightAnglePerpendicularCreated(),
+      // Advance when the user creates a new perpendicular line through a segment endpoint.
+      waitFor: (seStore, advanceTour) => {
+        const existingIds = new Set(seStore.seLines.map(line => line.id));
+        const stopWatching = watch(
+          () => seStore.seLines.length,
+          () => {
+            const found = findRightAngle(seStore);
+            if (found && !existingIds.has(found.line.id)) {
+              stopWatching();
+              advanceTour();
+            }
+          },
+        );
+        return stopWatching;
+      },
     },
     {
       element: '[data-tour="gr-BasicTools"]',
       titleKey: "tours.createRightTriangle.steps.6.title",
       descriptionKey: "tours.createRightTriangle.steps.6.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-BasicTools"]'),
     },
     {
       element: '[data-tour="bu-segment"]',
       titleKey: "tours.createRightTriangle.steps.7.title",
       descriptionKey: "tours.createRightTriangle.steps.7.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-segment"]'),
     },
     {
       element: "#sphereContainer",
       titleKey: "tours.createRightTriangle.steps.8.title",
       descriptionKey: "tours.createRightTriangle.steps.8.description",
-      waitFor: secondSideCreated(),
+      // Advance when a new segment connects the other endpoint to the perpendicular line.
+      waitFor: (seStore, advanceTour) => {
+        const existingIds = new Set(seStore.seSegments.map(segment => segment.id));
+        const stopWatching = watch(
+          () => seStore.seSegments.length,
+          () => {
+            const right = findRightAngle(seStore);
+            if (!right) return;
+            const matches = seStore.seSegments.some(segment =>
+              !existingIds.has(segment.id) && [
+                [segment.startSEPoint, segment.endSEPoint],
+                [segment.endSEPoint, segment.startSEPoint],
+              ].some(([from, to]) =>
+                samePosition(from, right.b) &&
+                isOnCircleOf(to, right.line) &&
+                !samePosition(to, right.a),
+              ),
+            );
+            if (matches) {
+              stopWatching();
+              advanceTour();
+            }
+          },
+        );
+        return stopWatching;
+      },
     },
     {
       element: "#sphereContainer",
       titleKey: "tours.createRightTriangle.steps.9.title",
       descriptionKey: "tours.createRightTriangle.steps.9.description",
-      waitFor: triangleClosed(),
+      // Advance when a new segment closes the right triangle by connecting C back to A.
+      waitFor: (seStore, advanceTour) => {
+        const existingIds = new Set(seStore.seSegments.map(segment => segment.id));
+        const stopWatching = watch(
+          () => seStore.seSegments.length,
+          () => {
+            const right = findRightAngle(seStore);
+            if (!right) return;
+            const sideBC = seStore.seSegments.find(segment =>
+              [segment.startSEPoint, segment.endSEPoint].some(point =>
+                isOnCircleOf(point, right.line) && !samePosition(point, right.a) &&
+                connects(segment, right.b, point),
+              ),
+            );
+            if (!sideBC) return;
+            const c = samePosition(sideBC.startSEPoint, right.b)
+              ? sideBC.endSEPoint
+              : sideBC.startSEPoint;
+            const sideCA = seStore.seSegments.find(
+              segment => !existingIds.has(segment.id) && connects(segment, c, right.a),
+            );
+            if (sideCA) {
+              stopWatching();
+              advanceTour();
+            }
+          },
+        );
+        return stopWatching;
+      },
     },
     {
       element: '[data-tour="gr-DisplayTools"]',
       titleKey: "tours.createRightTriangle.steps.10.title",
       descriptionKey: "tours.createRightTriangle.steps.10.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-DisplayTools"]'),
     },
     {
       element: '[data-tour="bu-hide"]',
       titleKey: "tours.createRightTriangle.steps.11.title",
       descriptionKey: "tours.createRightTriangle.steps.11.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-hide"]'),
     },
     {
       element: "#sphereContainer",
       titleKey: "tours.createRightTriangle.steps.12.title",
       descriptionKey: "tours.createRightTriangle.steps.12.description",
-      waitFor: perpendicularHidden(),
+      // Advance when the perpendicular line is hidden; visibility is polled because it is not reactive.
+      waitFor: (seStore, advanceTour) => {
+        const timer = setInterval(() => {
+          const right = findRightAngle(seStore);
+          if (right && !right.line.showing) {
+            clearInterval(timer);
+            advanceTour();
+          }
+        }, 250);
+        return () => clearInterval(timer);
+      },
     },
   ],
 
@@ -132,19 +393,19 @@ export const tourDefinitions = {
       element: '[data-tour="ta-tools"]',
       titleKey: "tours.createEquilateralTriangle.steps.1.title",
       descriptionKey: "tours.createEquilateralTriangle.steps.1.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
       titleKey: "tours.createEquilateralTriangle.steps.2.title",
       descriptionKey: "tours.createEquilateralTriangle.steps.2.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-BasicTools"]'),
     },
     {
       element: '[data-tour="bu-segment"]',
       titleKey: "tours.createEquilateralTriangle.steps.3.title",
       descriptionKey: "tours.createEquilateralTriangle.steps.3.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-segment"]'),
     },
     {
       element: "#sphereContainer",
@@ -156,7 +417,7 @@ export const tourDefinitions = {
       element: '[data-tour="bu-circle"]',
       titleKey: "tours.createEquilateralTriangle.steps.5.title",
       descriptionKey: "tours.createEquilateralTriangle.steps.5.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-circle"]'),
     },
     {
       element: "#sphereContainer",
@@ -174,7 +435,7 @@ export const tourDefinitions = {
       element: '[data-tour="bu-segment"]',
       titleKey: "tours.createEquilateralTriangle.steps.8.title",
       descriptionKey: "tours.createEquilateralTriangle.steps.8.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-segment"]'),
     },
     {
       element: "#sphereContainer",
@@ -186,29 +447,42 @@ export const tourDefinitions = {
       element: "#sphereContainer",
       titleKey: "tours.createEquilateralTriangle.steps.10.title",
       descriptionKey: "tours.createEquilateralTriangle.steps.10.description",
-      waitFor: equilateralTriangleCreated(),
+      // Advance when a newly created segment completes a closed triangle with three equal sides.
+      waitFor: (seStore, advanceTour) => {
+        const existingSegmentIds = new Set(seStore.seSegments.map(segment => segment.id));
+        const stopWatching = watch(
+          () => seStore.seSegments.length,
+          () => {
+            if (hasNewEquilateralTriangle(seStore, existingSegmentIds)) {
+              stopWatching();
+              advanceTour();
+            }
+          },
+        );
+        return stopWatching;
+      },
     },
   ],
 
 
   createPoint: [
-    /*{
-    element: '[data-tour="ta-tools"]',
-     titleKey: "tours.createPoint.steps.1.title",
-     descriptionKey: "tours.createPoint.steps.1.description",
-     waitFor: click(),
-   },*/
+    {
+      element: '[data-tour="ta-tools"]',
+      titleKey: "tours.createPoint.steps.1.title",
+      descriptionKey: "tours.createPoint.steps.1.description",
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
+    },
     {
       element: '[data-tour="gr-BasicTools"]',
       titleKey: "tours.createPoint.steps.2.title",
       descriptionKey: "tours.createPoint.steps.2.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-BasicTools"]'),
     },
     {
       element: '[data-tour="bu-point"]',
       titleKey: "tours.createPoint.steps.3.title",
       descriptionKey: "tours.createPoint.steps.3.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-point"]'),
     },
     {
       element: "#sphereContainer",
@@ -218,93 +492,7 @@ export const tourDefinitions = {
     },
   ],
 
-  rotateSphere: [
-    {
-      element: "#app",
-      titleKey: "tours.rotateSphere.steps.1.title",
-      descriptionKey: "tours.rotateSphere.steps.1.description",
-      waitFor: hasObject(),
-    },
-    {
-      element: '[data-tour="ta-tools"]',
-      titleKey: "tours.rotateSphere.steps.2.title",
-      descriptionKey: "tours.rotateSphere.steps.2.description",
-      waitFor: click(),
-    },
-    {
-      element: '[data-tour="gr-DisplayTools"]',
-      titleKey: "tours.rotateSphere.steps.3.title",
-      descriptionKey: "tours.rotateSphere.steps.3.description",
-      waitFor: click(),
-    },
-    {
-      element: '[data-tour="bu-rotate"]',
-      titleKey: "tours.rotateSphere.steps.4.title",
-      descriptionKey: "tours.rotateSphere.steps.4.description",
-      waitFor: click(),
-    },
-    {
-      element: "#sphereContainer",
-      titleKey: "tours.rotateSphere.steps.5.title",
-      descriptionKey: "tours.rotateSphere.steps.5.description",
-      waitFor: sphereRotated(),
-    },
-  ],
 
-  createSegment: [
-    {
-      element: '[data-tour="ta-tools"]',
-      titleKey: "tours.createSegment.steps.1.title",
-      descriptionKey: "tours.createSegment.steps.1.description",
-      waitFor: click(),
-    },
-    {
-      element: '[data-tour="gr-BasicTools"]',
-      titleKey: "tours.createSegment.steps.2.title",
-      descriptionKey: "tours.createSegment.steps.2.description",
-      waitFor: click(),
-    },
-    {
-      element: '[data-tour="bu-segment"]',
-      titleKey: "tours.createSegment.steps.3.title",
-      descriptionKey: "tours.createSegment.steps.3.description",
-      waitFor: click(),
-    },
-    {
-      element: "#sphereContainer",
-      titleKey: "tours.createSegment.steps.4.title",
-      descriptionKey: "tours.createSegment.steps.4.description",
-      waitFor: segmentCreated(),
-    },
-  ],
-
-
-  createCircle: [
-    {
-      element: '[data-tour="ta-tools"]',
-      titleKey: "tours.createCircle.steps.1.title",
-      descriptionKey: "tours.createCircle.steps.1.description",
-      waitFor: click(),
-    },
-    {
-      element: '[data-tour="gr-BasicTools"]',
-      titleKey: "tours.createCircle.steps.2.title",
-      descriptionKey: "tours.createCircle.steps.2.description",
-      waitFor: click(),
-    },
-    {
-      element: '[data-tour="bu-circle"]',
-      titleKey: "tours.createCircle.steps.3.title",
-      descriptionKey: "tours.createCircle.steps.3.description",
-      waitFor: click(),
-    },
-    {
-      element: "#sphereContainer",
-      titleKey: "tours.createCircle.steps.4.title",
-      descriptionKey: "tours.createCircle.steps.4.description",
-      waitFor: circleCreated(),
-    },
-  ],
 
   // Create a point on the back of the sphere.
   createBehindSpherePoint: [
@@ -312,25 +500,55 @@ export const tourDefinitions = {
       element: '[data-tour="ta-tools"]',
       titleKey: "tours.createBehindSpherePoint.steps.1.title",
       descriptionKey: "tours.createBehindSpherePoint.steps.1.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
       titleKey: "tours.createBehindSpherePoint.steps.2.title",
       descriptionKey: "tours.createBehindSpherePoint.steps.2.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-BasicTools"]'),
     },
     {
       element: '[data-tour="bu-point"]',
       titleKey: "tours.createBehindSpherePoint.steps.3.title",
       descriptionKey: "tours.createBehindSpherePoint.steps.3.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-point"]'),
     },
     {
       element: "#sphereContainer",
       titleKey: "tours.createBehindSpherePoint.steps.4.title",
       descriptionKey: "tours.createBehindSpherePoint.steps.4.description",
-      waitFor: behindSpherePointCreated(),
+      // Advance only when a point is created while Shift is held; ignore points created without it.
+      waitFor: (seStore, advanceTour) => {
+        let isShiftHeld = false;
+        const handleKeyDown = (event: KeyboardEvent) => {
+          if (event.key === "Shift") isShiftHeld = true;
+        };
+        const handleKeyUp = (event: KeyboardEvent) => {
+          if (event.key === "Shift") isShiftHeld = false;
+        };
+        let startingCount = seStore.sePoints.length;
+        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("keyup", handleKeyUp);
+        const stopWatching = watch(
+          () => seStore.sePoints.length,
+          currentCount => {
+            if (currentCount <= startingCount) return;
+            if (isShiftHeld) {
+              cleanup();
+              advanceTour();
+            } else {
+              startingCount = currentCount;
+            }
+          },
+        );
+        function cleanup(): void {
+          stopWatching();
+          document.removeEventListener("keydown", handleKeyDown);
+          document.removeEventListener("keyup", handleKeyUp);
+        }
+        return cleanup;
+      },
     },
   ],
 
@@ -340,81 +558,66 @@ export const tourDefinitions = {
       element: '[data-tour="ta-tools"]',
       titleKey: "tours.createLongerThanPiSegment.steps.1.title",
       descriptionKey: "tours.createLongerThanPiSegment.steps.1.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
       titleKey: "tours.createLongerThanPiSegment.steps.2.title",
       descriptionKey: "tours.createLongerThanPiSegment.steps.2.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-BasicTools"]'),
 
     },
     {
       element: '[data-tour="bu-segment"]',
       titleKey: "tours.createLongerThanPiSegment.steps.3.title",
       descriptionKey: "tours.createLongerThanPiSegment.steps.3.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-segment"]'),
     },
     {
       element: '#sphereContainer',
       titleKey: "tours.createLongerThanPiSegment.steps.4.title",
       descriptionKey: "tours.createLongerThanPiSegment.steps.4.description",
-      waitFor: longerThanPiSegmentCreated(),
+      // Advance when the user creates a new segment whose arc length is greater than Pi.
+      waitFor: (seStore, advanceTour) => {
+        const existingSegmentIds = new Set(seStore.seSegments.map(segment => segment.id));
+        const startingCount = seStore.seSegments.length;
+        const stopWatching = watch(
+          () => seStore.seSegments.length,
+          currentCount => {
+            if (currentCount <= startingCount) return;
+            const longerSegment = seStore.seSegments.find(
+              segment => !existingSegmentIds.has(segment.id) && segment.arcLength > Math.PI,
+            );
+            if (longerSegment) {
+              stopWatching();
+              advanceTour();
+            }
+          },
+        );
+        return stopWatching;
+      },
     },
   ],
 
-  // Move an existing geometric object.
-  moveObject: [
-    {
-      element: "#app",
-      titleKey: "tours.moveObject.steps.1.title",
-      descriptionKey: "tours.moveObject.steps.1.description",
-      waitFor: hasMovablePoint(),
-    },
-    {
-      element: '[data-tour="ta-tools"]',
-      titleKey: "tours.moveObject.steps.2.title",
-      descriptionKey: "tours.moveObject.steps.2.description",
-      waitFor: click(),
-    },
-    {
-      element: '[data-tour="gr-DisplayTools"]',
-      titleKey: "tours.moveObject.steps.3.title",
-      descriptionKey: "tours.moveObject.steps.3.description",
-      waitFor: click(),
-    },
-    {
-      element: '[data-tour="bu-move"]',
-      titleKey: "tours.moveObject.steps.4.title",
-      descriptionKey: "tours.moveObject.steps.4.description",
-      waitFor: click(),
-    },
-    {
-      element: "#sphereContainer",
-      titleKey: "tours.moveObject.steps.5.title",
-      descriptionKey: "tours.moveObject.steps.5.description",
-      waitFor: objectMoved(),
-    },
-  ],
 
   measureSegment: [
     {
       element: '[data-tour="ta-tools"]',
       titleKey: "tours.measureSegment.steps.1.title",
       descriptionKey: "tours.measureSegment.steps.1.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
       titleKey: "tours.measureSegment.steps.2.title",
       descriptionKey: "tours.measureSegment.steps.2.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-BasicTools"]'),
     },
     {
       element: '[data-tour="bu-segment"]',
       titleKey: "tours.measureSegment.steps.3.title",
       descriptionKey: "tours.measureSegment.steps.3.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-segment"]'),
     },
     {
       element: "#sphereContainer",
@@ -426,19 +629,19 @@ export const tourDefinitions = {
       element: '[data-tour="ta-tools"]',
       titleKey: "tours.measureSegment.steps.5.title",
       descriptionKey: "tours.measureSegment.steps.5.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
     },
     {
       element: '[data-tour="gr-MeasurementTools"]',
       titleKey: "tours.measureSegment.steps.6.title",
       descriptionKey: "tours.measureSegment.steps.6.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-MeasurementTools"]'),
     },
     {
       element: '[data-tour="bu-segmentLength"]',
       titleKey: "tours.measureSegment.steps.7.title",
       descriptionKey: "tours.measureSegment.steps.7.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-segmentLength"]'),
     },
     {
       element: "#sphereContainer",
@@ -454,19 +657,19 @@ export const tourDefinitions = {
       element: '[data-tour="ta-tools"]',
       titleKey: "tours.changeMeasurementUnits.steps.1.title",
       descriptionKey: "tours.changeMeasurementUnits.steps.1.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
     },
     {
       element: '[data-tour="gr-BasicTools"]',
       titleKey: "tours.changeMeasurementUnits.steps.2.title",
       descriptionKey: "tours.changeMeasurementUnits.steps.2.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-BasicTools"]'),
     },
     {
       element: '[data-tour="bu-segment"]',
       titleKey: "tours.changeMeasurementUnits.steps.3.title",
       descriptionKey: "tours.changeMeasurementUnits.steps.3.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-segment"]'),
     },
     {
       element: "#sphereContainer",
@@ -478,19 +681,19 @@ export const tourDefinitions = {
       element: '[data-tour="ta-tools"]',
       titleKey: "tours.changeMeasurementUnits.steps.5.title",
       descriptionKey: "tours.changeMeasurementUnits.steps.5.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-tools"]'),
     },
     {
       element: '[data-tour="gr-MeasurementTools"]',
       titleKey: "tours.changeMeasurementUnits.steps.6.title",
       descriptionKey: "tours.changeMeasurementUnits.steps.6.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-MeasurementTools"]'),
     },
     {
       element: '[data-tour="bu-segmentLength"]',
       titleKey: "tours.changeMeasurementUnits.steps.7.title",
       descriptionKey: "tours.changeMeasurementUnits.steps.7.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-segmentLength"]'),
     },
     {
       element: "#sphereContainer",
@@ -502,19 +705,39 @@ export const tourDefinitions = {
       element: '[data-tour="ta-obj"]',
       titleKey: "tours.changeMeasurementUnits.steps.9.title",
       descriptionKey: "tours.changeMeasurementUnits.steps.9.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="ta-obj"]'),
     },
     {
       element: '[data-tour="gr-expression"]',
       titleKey: "tours.changeMeasurementUnits.steps.10.title",
       descriptionKey: "tours.changeMeasurementUnits.steps.10.description",
-      waitFor: click(),
+      waitFor: clickOrAdvanceIfActive('[data-tour="gr-expression"]'),
     },
     {
       element: "#app",
       titleKey: "tours.changeMeasurementUnits.steps.11.title",
       descriptionKey: "tours.changeMeasurementUnits.steps.11.description",
-      waitFor: measurementUnitsChanged(),
+      // Advance when an existing segment-length measurement's displayed value changes.
+      waitFor: (seStore, advanceTour) => {
+        const startingValues = new Map(
+          getSegmentMeasurements(seStore).map(measurement => [measurement.id, measurement.value] as const),
+        );
+        const stopWatching = watch(
+          () => getSegmentMeasurements(seStore).map(
+            measurement => [measurement.id, measurement.value] as const,
+          ),
+          currentMeasurements => {
+            const unitsChanged = currentMeasurements.some(
+              ([id, value]) => startingValues.has(id) && startingValues.get(id) !== value,
+            );
+            if (unitsChanged) {
+              stopWatching();
+              advanceTour();
+            }
+          },
+        );
+        return stopWatching;
+      },
     },
   ],
 
@@ -551,67 +774,40 @@ export type TourStep = {
 // The function returns a cleanup callback when it creates a listener or watcher.
 // This allows the tour engine to stop watching when the user leaves the current step.
 
-// Wait for the user to click the highlighted element.
-function oldclick(): WaitForFunction {
-  return (_seStore, advanceTour, element) => {
+
+// Advance when a selected tool or expanded group already satisfies this step.
+function clickOrAdvanceIfActive(selector: string): WaitForFunction {
+  return (seStore, advanceTour, _highlightedElement) => {
+    // Resolve the explicit selector so a different highlighted group cannot satisfy this step.
+    const element = document.querySelector(selector);
     if (!element) return;
 
-    const handleClick = () => advanceTour();
+    const target = element.getAttribute("data-tour") ?? "";
+    const isSelectedTool =
+      target.startsWith("bu-") &&
+      seStore.actionMode === target.slice("bu-".length);
+    const isActiveTab =
+      target.startsWith("ta-") &&
+      (element.classList.contains("active") ||
+        element.classList.contains("v-list-item--active"));
+    const isExpandedGroup =
+      target.startsWith("gr-") &&
+      (element.classList.contains("v-expansion-panel--active") ||
+        element.querySelector(
+          ".v-expansion-panel-title[aria-expanded='true']",
+        ) !== null);
 
-    // { once: true } removes the listener after the first click.
+    if (isSelectedTool || isActiveTab || isExpandedGroup) {
+      queueMicrotask(advanceTour);
+      return;
+    }
+
+    const handleClick = () => queueMicrotask(advanceTour);
     element.addEventListener("click", handleClick, { once: true });
-
-    // Return a cleanup function in case the user leaves this step early.
     return () => element.removeEventListener("click", handleClick);
   };
 }
 
-// Wait for the user to click the highlighted element.
-function click(): WaitForFunction {
-  return (_seStore, advanceTour, element) => {
-    if (!element) return;
-
-    const handleClick = () => advanceTour();
-
-    // { once: true } removes the listener after the first click.
-    element.addEventListener("click", handleClick, { once: true });
-
-    // Return a cleanup function in case the user leaves this step early.
-    return () => element.removeEventListener("click", handleClick);
-  };
-}
-
-
-// Capture a newly selected point so later steps can refer to it.
-function getPoint(): WaitForFunction {
-  return (seStore, advanceTour) => {
-    const existingPointIds = new Set(
-      seStore.selectedSENodules
-        .filter((nodule): nodule is SEPoint => nodule instanceof SEPoint)
-        .map(point => point.id),
-    );
-
-    const stopWatching = watch(
-      () => seStore.selectedSENodules.filter(
-        (nodule): nodule is SEPoint => nodule instanceof SEPoint,
-      ),
-      selectedPoints => {
-        // Find a selected point that was not selected when this step began.
-        const newlySelectedPoint = selectedPoints.find(
-          point => !existingPointIds.has(point.id),
-        );
-
-        if (newlySelectedPoint) {
-          stopWatching();
-          advanceTour();
-        }
-      },
-    );
-
-    // Stop watching if the user leaves this step early.
-    return stopWatching;
-  };
-}
 
 
 // Wait for a new point to be created.
@@ -731,156 +927,7 @@ function connects(segment: SESegment, p: SEPoint, q: SEPoint): boolean {
   );
 }
 
-// Shared helper: advance once a NEW segment (not present when the step began)
-// satisfies the check. Wrong segments are ignored and the user keeps trying.
-function newSegmentMatching(
-  check: (seStore: SEStore, segment: SESegment) => boolean,
-): WaitForFunction {
-  return (seStore, advanceTour) => {
-    const existingIds = new Set(seStore.seSegments.map(s => s.id));
-    const stopWatching = watch(
-      () => seStore.seSegments.length,
-      () => {
-        const match = seStore.seSegments.some(
-          s => !existingIds.has(s.id) && check(seStore, s),
-        );
-        if (match) {
-          stopWatching();
-          advanceTour();
-        }
-      },
-    );
-    return stopWatching;
-  };
-}
-
-// Step: the user creates a perpendicular line through an endpoint of a segment.
-function rightAnglePerpendicularCreated(): WaitForFunction {
-  return (seStore, advanceTour) => {
-    const existingIds = new Set(seStore.seLines.map(l => l.id));
-    const stopWatching = watch(
-      () => seStore.seLines.length,
-      () => {
-        const found = findRightAngle(seStore);
-        // Only count a perpendicular created during this step.
-        if (found && !existingIds.has(found.line.id)) {
-          stopWatching();
-          advanceTour();
-        }
-      },
-    );
-    return stopWatching;
-  };
-}
-
-// Step: a new segment from B (other endpoint) to a point C on the perpendicular line.
-function secondSideCreated(): WaitForFunction {
-  return newSegmentMatching((seStore, segment) => {
-    const right = findRightAngle(seStore);
-    if (!right) return false;
-    for (const [from, to] of [
-      [segment.startSEPoint, segment.endSEPoint],
-      [segment.endSEPoint, segment.startSEPoint],
-    ]) {
-      if (
-        samePosition(from, right.b) &&
-        isOnCircleOf(to, right.line) &&
-        !samePosition(to, right.a) // C must not be A itself
-      ) {
-        return true;
-      }
-    }
-    return false;
-  });
-}
-
-// Step: the third side connects C back to A, so all three sides now exist.
-function triangleClosed(): WaitForFunction {
-  return (seStore, advanceTour) => {
-    const existingIds = new Set(seStore.seSegments.map(s => s.id));
-    const stopWatching = watch(
-      () => seStore.seSegments.length,
-      () => {
-        const right = findRightAngle(seStore);
-        if (!right) return;
-        // Look for the side from B to a point C on the perpendicular line.
-        const sideBC = seStore.seSegments.find(s =>
-          [s.startSEPoint, s.endSEPoint].some(c =>
-            isOnCircleOf(c, right.line) && !samePosition(c, right.a) &&
-            connects(s, right.b, c)),
-        );
-        if (!sideBC) return;
-        const c = samePosition(sideBC.startSEPoint, right.b) ? sideBC.endSEPoint : sideBC.startSEPoint;
-        // The new segment must join C and A.
-        const sideCA = seStore.seSegments.find(
-          s => !existingIds.has(s.id) && connects(s, c, right.a),
-        );
-        if (sideCA) {
-          stopWatching();
-          advanceTour();
-        }
-      },
-    );
-    return stopWatching;
-  };
-}
-
-// Step: the perpendicular line has been hidden.
-// Showing/hiding is not tracked reactively, so check it a few times per second.
-function perpendicularHidden(): WaitForFunction {
-  return (seStore, advanceTour) => {
-    const timer = setInterval(() => {
-      const right = findRightAngle(seStore);
-      if (right && !right.line.showing) {
-        clearInterval(timer);
-        advanceTour();
-      }
-    }, 250);
-    return () => clearInterval(timer);
-  };
-}
-
-
-
-
-
-// Shared helper for watching a collection until its count increases.
-function watchForIncrease(
-  getCount: () => number,
-  advanceTour: () => void,
-): () => void {
-  const startingCount = getCount();
-
-  const stopWatching = watch(getCount, currentCount => {
-    if (currentCount <= startingCount) return;
-    stopWatching();
-    advanceTour();
-  });
-
-  return stopWatching;
-}
-
-
 // For an equilateral-triangle step, advance when the final side is created.
-function equilateralTriangleCreated(): WaitForFunction {
-  return (seStore, advanceTour) => {
-    const existingSegmentIds = new Set(seStore.seSegments.map(segment => segment.id));
-    const stopWatching = watch(
-      () => seStore.seSegments.length,
-      () => {
-        // The new side must be part of a closed triangle with three equal sides.
-        if (hasNewEquilateralTriangle(seStore, existingSegmentIds)) {
-          stopWatching();
-          advanceTour();
-        }
-      },
-    );
-
-    // Stop watching if the user leaves this step early.
-    return stopWatching;
-  };
-}
-
 // Check that a newly created segment closes an equal-sided triangle.
 function hasNewEquilateralTriangle(
   seStore: SEStore,
@@ -923,12 +970,6 @@ function formsClosedTriangle(a: SESegment, b: SESegment, c: SESegment): boolean 
 
 // Advance when a new line-segment measurement is created.
 function measureSegment(): WaitForFunction {
-  return lineSegmentMeasured();
-}
-
-
-// Advance when a new line-segment measurement is created.
-function lineSegmentMeasured(): WaitForFunction {
   return (seStore, advanceTour) => {
     // Capture the IDs of measurements that already exist.
     const existingMeasurementIds = new Set(
@@ -965,217 +1006,7 @@ function getSegmentMeasurements(seStore: SEStore): SESegmentLength[] {
 }
 
 
-// For a back-of-sphere point step, advance when a point is created while Shift is held.
-function behindSpherePointCreated(): WaitForFunction {
-  return (seStore, advanceTour) => {
-    // Track whether the Shift key is currently held.
-    let isShiftHeld = false;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Shift") isShiftHeld = true;
-    };
-    const handleKeyUp = (event: KeyboardEvent) => {
-      if (event.key === "Shift") isShiftHeld = false;
-    };
-
-    // Capture how many points existed when this step began.
-    let startingCount = seStore.sePoints.length;
-
-    document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("keyup", handleKeyUp);
-
-    // Watch the reactive Pinia collection for a new point.
-    const stopWatching = watch(
-      () => seStore.sePoints.length,
-      currentCount => {
-        if (currentCount <= startingCount) return;
-
-        if (isShiftHeld) {
-          // The point was created while Shift was held.
-          cleanup();
-          advanceTour();
-        } else {
-          // Ignore points created without Shift and keep waiting.
-          startingCount = currentCount;
-        }
-      },
-    );
-
-    // Remove both keyboard listeners and the watcher when leaving this step.
-    function cleanup(): void {
-      stopWatching();
-      document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("keyup", handleKeyUp);
-    }
-
-    return cleanup;
-  };
-}
-
-
-// For a segment longer than Pi, advance when a new segment greater than Pi is created.
-function longerThanPiSegmentCreated(): WaitForFunction {
-  return (seStore, advanceTour) => {
-    // Do not count segments that already exist.
-    const existingSegmentIds = new Set(
-      seStore.seSegments.map(segment => segment.id),
-    );
-    const startingCount = seStore.seSegments.length;
-
-    // Watch Pinia to see if a new segment greater than Pi has been made.
-    const stopWatching = watch(
-      () => seStore.seSegments.length,
-      currentCount => {
-        if (currentCount <= startingCount) return;
-
-        // Find a new segment whose arc length is greater than Pi.
-        const longerSegment = seStore.seSegments.find(
-          segment =>
-            !existingSegmentIds.has(segment.id) &&
-            segment.arcLength > Math.PI,
-        );
-
-        if (longerSegment) {
-          stopWatching();
-          advanceTour();
-        }
-      },
-    );
-
-    // Stop watching if the user leaves this step early.
-    return stopWatching;
-  };
-}
-
-
-// For a sphere-rotation step, advance when the sphere is rotated.
-function sphereRotated(): WaitForFunction {
-  return (seStore, advanceTour) => {
-    // Capture the current rotation matrix of the sphere.
-    const startingRotation =
-      seStore.inverseTotalRotationMatrix.elements.join(",");
-
-    // Watch for changes to the sphere's rotation matrix.
-    const stopWatching = watch(
-      () => seStore.inverseTotalRotationMatrix.elements.join(","),
-      currentRotation => {
-        if (currentRotation !== startingRotation) {
-          stopWatching();
-          advanceTour();
-        }
-      },
-    );
-
-    // Stop watching if the user leaves this step early.
-    return stopWatching;
-  };
-}
-
-
-// For an object-movement step, advance when an existing point is moved.
-function objectMoved(): WaitForFunction {
-  return (seStore, advanceTour) => {
-    // Save each existing object's position when this tour step starts.
-    const startingPositions = new Map(
-      seStore.sePoints.map(point => [
-        point.id,
-        point.locationVector.toArray().join(","),
-      ]),
-    );
-
-    // Watch the positions so a change to an existing object can be detected.
-    const stopWatching = watch(
-      () => seStore.sePoints
-        .map(point => `${point.id}:${point.locationVector.toArray().join(",")}`)
-        .join("|"),
-      () => {
-        // Check only objects that existed when the step began.
-        const moved = seStore.sePoints.some(
-          point =>
-            startingPositions.has(point.id) &&
-            startingPositions.get(point.id) !== point.locationVector.toArray().join(","),
-        );
-
-        if (moved) {
-          stopWatching();
-          advanceTour();
-        }
-      },
-    );
-
-    // Stop watching if the user leaves this step early.
-    return stopWatching;
-  };
-}
-
-
-// Advance when the displayed value of an existing measurement changes.
-function measurementUnitsChanged(): WaitForFunction {
-  return (seStore, advanceTour) => {
-    // Capture the values of the measurements when this step begins.
-    const startingValues = new Map(
-      getSegmentMeasurements(seStore).map(
-        measurement => [measurement.id, measurement.value] as const,
-      ),
-    );
-
-    // Watch for a change to an existing measurement's displayed value.
-    const stopWatching = watch(
-      () => getSegmentMeasurements(seStore).map(
-        measurement => [measurement.id, measurement.value] as const,
-      ),
-      currentMeasurements => {
-        const unitsChanged = currentMeasurements.some(
-          ([id, value]) =>
-            startingValues.has(id) && startingValues.get(id) !== value,
-        );
-
-        if (unitsChanged) {
-          stopWatching();
-          advanceTour();
-        }
-      },
-    );
-
-    // Stop watching if the user leaves this step early.
-    return stopWatching;
-  };
-}
-
-
 // Check whether at least one geometric object exists on the sphere.
-function hasObject(): WaitForFunction {
-  return (seStore, advanceTour) => watchForExistingCondition(
-    () =>
-      seStore.sePoints.length > 0 ||
-      seStore.seSegments.length > 0 ||
-      seStore.seCircles.length > 0,
-    advanceTour,
-  );
-}
-
-
-// Check whether at least one segment exists on the sphere.
-function hasSegment(): WaitForFunction {
-  return (seStore, advanceTour) =>
-    watchForExistingCondition(() => seStore.seSegments.length > 0, advanceTour);
-}
-
-
-// Check whether at least one segment-length measurement exists.
-function hasMeasurement(): WaitForFunction {
-  return (seStore, advanceTour) =>
-    watchForExistingCondition(() => getSegmentMeasurements(seStore).length > 0, advanceTour);
-}
-
-
-// Check whether at least one movable point exists on the sphere.
-function hasMovablePoint(): WaitForFunction {
-  return (seStore, advanceTour) =>
-    watchForExistingCondition(() => seStore.sePoints.length > 0, advanceTour);
-}
-
-
 // Shared helper for prerequisite conditions that may already be satisfied.
 function watchForExistingCondition(
   condition: () => boolean,
@@ -1183,7 +1014,8 @@ function watchForExistingCondition(
 ): (() => void) | void {
   // If the condition is already true, advance without creating a watcher.
   if (condition()) {
-    advanceTour();
+    // Wait until the current Driver.js highlight callback finishes before moving on.
+    queueMicrotask(advanceTour);
     return;
   }
 
@@ -1191,7 +1023,9 @@ function watchForExistingCondition(
   const stopWatching = watch(condition, satisfied => {
     if (!satisfied) return;
     stopWatching();
-    advanceTour();
+    //advanceTour();
+    // Wait until the current Driver.js highlight callback finishes before moving on.
+    queueMicrotask(advanceTour);
   });
 
   return stopWatching;

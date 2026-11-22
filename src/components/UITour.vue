@@ -43,7 +43,7 @@
         }
       },
 
-      "rotateSphere": {
+      "rotate_Sphere": {
         "label": "Rotate Sphere",
         "steps": {
           "1": {
@@ -68,6 +68,7 @@
           }
         }
       },
+
       "createSegment": {
         "label": "Create a Line Segment",
         "steps": {
