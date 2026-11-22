@@ -1,12 +1,11 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div id="toolbox-and-sphere">
-    <AppNavigation
-      @drawer-width-changed="
-        w => {
-          navDrawerWidth = w;
-        }
-      " />
+    <AppNavigation @drawer-width-changed="
+      w => {
+        navDrawerWidth = w;
+      }
+    " />
 
     <!-- Shortcut icons are placed using absolute positioning. CSS requires
             their parents to have its position set . Use either relative, absolute -->
@@ -15,42 +14,29 @@
       <!-- DO NOT replace v-show below with v-if. Using v-if, SphereFrame instance
        will not be created and there is no TwoJS layer present to render contents -->
       <div id="earthAndCircle" v-show="svgDataImage.length === 0">
-        <EarthLayer
-          v-if="localIsEarthMode"
-          :available-height="availHeight"
-          :available-width="availWidth" />
-        <HyperbolicFrame
-          v-if="route.path.endsWith('/hyperbolic')"
-          :available-width="availWidth"
+        <EarthLayer v-if="localIsEarthMode" :available-height="availHeight" :available-width="availWidth" />
+        <HyperbolicFrame v-if="route.path.endsWith('/hyperbolic')" :available-width="availWidth"
           :available-height="availHeight"></HyperbolicFrame>
-        <SphereFrame
-          v-else
-          :available-width="availWidth"
-          :available-height="availHeight"
+        <SphereFrame v-else :available-width="availWidth" :available-height="availHeight"
           :is-earth-mode="localIsEarthMode" />
         <StyleDrawer></StyleDrawer>
       </div>
-      <div
-        v-if="svgDataImage.length !== 0"
-        :class="previewClass"
-        :style="{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          width: `${availWidth}px`,
-          height: `${availHeight + 6}px`
+      <div v-if="svgDataImage.length !== 0" :class="previewClass" :style="{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        width: `${availWidth}px`,
+        height: `${availHeight + 6}px`
+      }">
+        <div v-if="constructionInfo !== null" :style="{
+          // border: '2px solid gray',
+          borderRadius: '0.5em',
+          padding: '0.25em',
+          color: 'white',
+          backgroundColor: constructionInfo.publicDocId
+            ? colors.green.darken1
+            : colors.grey.base
         }">
-        <div
-          v-if="constructionInfo !== null"
-          :style="{
-            // border: '2px solid gray',
-            borderRadius: '0.5em',
-            padding: '0.25em',
-            color: 'white',
-            backgroundColor: constructionInfo.publicDocId
-              ? colors.green.darken1
-              : colors.grey.base
-          }">
           <div>
             {{ constructionInfo.description }} ({{
               constructionInfo.objectCount
@@ -68,22 +54,11 @@
             )
           </div>
         </div>
-        <img
-          id="previewImage"
-          :src="svgDataImage"
-          :width="0.9 * overlayHeight"
-          :height="0.9 * overlayHeight" />
+        <img id="previewImage" :src="svgDataImage" :width="0.9 * overlayHeight" :height="0.9 * overlayHeight" />
       </div>
       <div id="msghub">
-        <ShortcutIcon
-          class="mx-1"
-          v-for="t in leftShortcutGroup"
-          :key="t.action"
-          :model="t" />
-        <ShortcutIcon
-          :disabled="!hasObjects"
-          class="mx-1"
-          :model="TOOL_DICTIONARY.get('resetAction')!" />
+        <ShortcutIcon class="mx-1" v-for="t in leftShortcutGroup" :key="t.action" :model="t" />
+        <ShortcutIcon :disabled="!hasObjects" class="mx-1" :model="TOOL_DICTIONARY.get('resetAction')!" />
         <div style="flex-grow: 1">
           <MessageHub />
         </div>
@@ -96,13 +71,8 @@
         </div>
       </div>
     </div>
-    <Dialog
-      ref="unsavedWorkDialog"
-      max-width="40%"
-      :title="t('unsavedConstructionsConfirmation')"
-      :yes-text="t('constructionsKeep')"
-      :no-text="t('constructionsDiscard')"
-      :no-action="doLeave">
+    <Dialog ref="unsavedWorkDialog" max-width="40%" :title="t('unsavedConstructionsConfirmation')"
+      :yes-text="t('constructionsKeep')" :no-text="t('constructionsDiscard')" :no-action="doLeave">
       {{ t(`unsavedConstructionsMessage`) }}
     </Dialog>
     <v-snackbar location="top" v-model="loadingFromPath" color="grey-lighten-4">
@@ -220,7 +190,10 @@ const previewClass = ref("");
 const constructionInfo = ref<SphericalConstruction | null>(null);
 const localIsEarthMode = ref(false);
 const loadingFromPath = ref(false);
-const showUITour = ref(false);
+
+//const showUITour = ref(false);
+const showUITour = computed(() => route.path === "/tutorial");
+
 let confirmedLeaving = false;
 let attemptedToRoute: RouteLocationNormalized | null = null;
 
@@ -311,7 +284,7 @@ onMounted((): void => {
   EventBus.listen("set-action-mode-to-select-tool", setActionModeToSelectTool);
   EventBus.listen("initiate-clear-construction", handleResetSphere);
   window.addEventListener("keydown", handleKeyDown);
-  showUITour.value = route.path === "/tutorial";
+  //showUITour.value = route.path === "/tutorial";
 });
 
 onBeforeUnmount((): void => {
@@ -523,13 +496,11 @@ onBeforeRouteLeave(
   height: 100%;
 }
 </style>
-<i18n locale="en" lang="json">
-{
+<i18n locale="en" lang="json">{
   "clearConstructionMessage": "The current construction will be cleared",
   "unsavedConstructionsMessage": "You have unsaved constructions. Keep or discard?",
   "unsavedConstructionsConfirmation": "Unsaved Constructions",
   "constructionsDiscard": "Discard",
   "constructionsKeep": "Keep",
   "undo": "Undo"
-}
-</i18n>
+}</i18n>
