@@ -337,53 +337,55 @@ function searchTours(): void { updateTourSearch(searchText.value); } // Passes t
   <!-- /////////////////////////////////// UITour HTML-CCS /////////////////////////////////////////////////////////////-->
 
 
-  <!-- The open button is hidden when the tour panel is open. -->
-  <button v-if="!isOpen" type="button" class="tour-open-button" aria-label="Open Tour menu" title="Open Tour menu"
-    @click="openTourTab">
-    ?
-  </button>
+  <Transition name="tour-menu" mode="out-in" appear>
+    <!-- The open button is hidden when the tour panel is open. -->
+    <button v-if="!isOpen" type="button" class="tour-open-button" aria-label="Open Tour menu" title="Open Tour menu"
+      @click="openTourTab">
+      Tour Menu
+    </button>
 
-  <!-- The tour panel is hidden when the open button is visible. -->
-  <section v-else class="tour-panel" aria-label="Guided tours">
-    <header class="tour-header">
-      <h2>Tours
-      </h2>
-      <button type="button" class="close-button" aria-label="Close Tour menu" title="Close Tour menu"
-        @click="closeTourTab">
-        x
-      </button>
-    </header>
-
-    <!-- The search input is used to filter the list of tours. -->
-    <div class="tour-search">
-      <span class="search-icon"> ⌕ </span>
-      <input v-model="searchText" type="text" placeholder="Search For Tour" aria-label="Search for tour"
-        @input="searchTours" />
-    </div>
-
-    <!-- $$$$ Step 3 Create Tour Button $$$$-->
-    <div class="tour-list-container">
-
-      <div class="tour-list">
-        <button v-for="tour in filteredTours" :key="tour.id" type="button" class="tour-choice"
-          @click="selectTour(tour.id)">
-          <span>{{ t(tour.labelKey) }}</span>
-
-          <!-- Display a checkmark if the user has completed this tour. -->
-          <span v-if="completedTours[tour.id]" class="tour-completed" title="Completed" aria-label="Completed">
-            ✓
-          </span>
+    <!-- The tour panel is hidden when the open button is visible. -->
+    <section v-else class="tour-panel" aria-label="Guided tours">
+      <header class="tour-header">
+        <h2>Tours
+        </h2>
+        <button type="button" class="close-button" aria-label="Close Tour menu" title="Close Tour menu"
+          @click="closeTourTab">
+          x
         </button>
+      </header>
 
-        <p v-if="filteredTours.length === 0" class="no-tours-found">
-          No tours found.
-        </p>
+      <!-- The search input is used to filter the list of tours. -->
+      <div class="tour-search">
+        <span class="search-icon"> ⌕ </span>
+        <input v-model="searchText" type="text" placeholder="Search For Tour" aria-label="Search for tour"
+          @input="searchTours" />
       </div>
 
+      <!-- $$$$ Step 3 Create Tour Button $$$$-->
+      <div class="tour-list-container">
+
+        <div class="tour-list">
+          <button v-for="tour in filteredTours" :key="tour.id" type="button" class="tour-choice"
+            @click="selectTour(tour.id)">
+            <span>{{ t(tour.labelKey) }}</span>
+
+            <!-- Display a checkmark if the user has completed this tour. -->
+            <span v-if="completedTours[tour.id]" class="tour-completed" title="Completed" aria-label="Completed">
+              ✓
+            </span>
+          </button>
+
+          <p v-if="filteredTours.length === 0" class="no-tours-found">
+            No tours found.
+          </p>
+        </div>
 
 
-    </div>
-  </section>
+
+      </div>
+    </section>
+  </Transition>
 </template>
 
 
@@ -391,22 +393,27 @@ function searchTours(): void { updateTourSearch(searchText.value); } // Passes t
 .tour-open-button {
   position: absolute;
   top: 12px;
-  right: 12px;
+  left: 400px;
   z-index: 20;
-  width: 42px;
+  width: 124px;
   height: 42px;
   background: #8ccd8f;
   color: #002108;
-  font-size: 22px;
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   border-radius: 12px;
+  transition: filter 140ms ease, scale 100ms ease;
+}
+
+.tour-open-button:hover {
+  filter: brightness(0.92);
 }
 
 .tour-panel {
   position: absolute;
   top: 12px;
-  right: 12px;
+  left: 400px;
   z-index: 20;
   width: 360px;
   height: 480px;
@@ -441,6 +448,11 @@ function searchTours(): void { updateTourSearch(searchText.value); } // Passes t
   font-weight: bold;
   cursor: pointer;
   border-radius: 12px;
+  transition: filter 140ms ease, scale 100ms ease;
+}
+
+.close-button:hover {
+  filter: brightness(0.92);
 }
 
 .tour-search {
@@ -506,6 +518,11 @@ function searchTours(): void { updateTourSearch(searchText.value); } // Passes t
   display: flex;
   align-items: center;
   justify-content: space-between;
+  transition: scale 100ms ease;
+}
+
+button:active {
+  scale: 0.95;
 }
 
 .tour-completed {
@@ -523,5 +540,25 @@ function searchTours(): void { updateTourSearch(searchText.value); } // Passes t
   margin: 12px;
   color: #002108;
   font-size: 14px;
+}
+
+.tour-menu-enter-active,
+.tour-menu-leave-active {
+  transform-origin: left top;
+  transition: transform 280ms ease, opacity 180ms ease;
+}
+
+.tour-menu-enter-from,
+.tour-menu-leave-to {
+  transform: scaleX(0);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .tour-menu-enter-active,
+  .tour-menu-leave-active {
+    transition: none;
+  }
 }
 </style>
