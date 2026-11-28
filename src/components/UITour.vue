@@ -1,8 +1,18 @@
 <!-- Translation keys for the tours -->
+<!-- 3 Add Text to your tour-->
 <i18n locale="en">
   {
     "tours": {
       
+
+
+
+
+
+
+
+
+
       "create_Demo": {
         "label": "Create a Demo", 
          "steps": {
@@ -312,13 +322,7 @@ import { useTourEngine } from "@/stores/tourEngine";
 const { t } = useI18n();
 const tourEngine = useTourEngine();
 const { completedTours, filteredTours } = storeToRefs(tourEngine);
-
-const {
-  selectTour: startTour,
-  searchTours: updateTourSearch
-} = tourEngine;
-
-
+const { selectTour: startTour, searchTours: updateTourSearch } = tourEngine;
 const isOpen = ref(false); // Controls whether the tour panel is open or closed.
 const searchText = ref("");  // The text entered in the search input to filter the list of tours.
 
@@ -377,7 +381,7 @@ function searchTours(): void { updateTourSearch(searchText.value); } // Passes t
           </button>
 
           <p v-if="filteredTours.length === 0" class="no-tours-found">
-            No tours found.
+            No tours found D:
           </p>
         </div>
 
@@ -395,11 +399,11 @@ function searchTours(): void { updateTourSearch(searchText.value); } // Passes t
   top: 12px;
   left: 400px;
   z-index: 20;
-  width: 124px;
-  height: 42px;
+  width: clamp(110px, 12vw, 150px);
+  height: clamp(38px, 5vh, 48px);
   background: #8ccd8f;
   color: #002108;
-  font-size: 16px;
+  font-size: clamp(14px, 1.5vw, 17px);
   font-weight: bold;
   cursor: pointer;
   border-radius: 12px;
@@ -415,12 +419,18 @@ function searchTours(): void { updateTourSearch(searchText.value); } // Passes t
   top: 12px;
   left: 400px;
   z-index: 20;
-  width: 360px;
-  height: 480px;
+  width: min(30vw, 420px);
+  height: min(55vh, 600px);
+  min-width: min(280px, calc(100vw - 424px));
+  min-height: min(320px, calc(100dvh - 24px));
+  max-width: calc(100vw - 412px);
+  max-height: calc(100dvh - 24px);
   display: flex;
   flex-direction: column;
   background: #b9d9c1;
   border-radius: 12px;
+  resize: both;
+  overflow: auto;
 }
 
 .tour-header {

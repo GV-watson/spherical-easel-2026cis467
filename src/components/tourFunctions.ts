@@ -10,6 +10,10 @@ import { SESegmentLength } from "@/models-spherical/SESegmentLength";
 // 1 To Add new tours create a tour id and a label for the button in the tour tab
 export const tours = [
 
+  // 1 create a new tour id and label for the button in the tour tab
+  //id: is the tour id, label is the translation key for the button label in the tour tab
+  //labelKey is the translation key for the button label in the tour tab, 
+
   //{ id: "create_Demo", label: "tours.create_Demo.label" },
 
   { id: "createPoint", label: "tours.createPoint.label" },
@@ -27,22 +31,41 @@ export const tours = [
 
 
 // 2 Then define the steps for each tour in the tourDefinitions object.
-// Each tour is an array of steps. Each step has a target element, translation keys, and a waitFor function.
+// Each tour is an array of steps. Each step has a target element,
+// translation keys, and a waitFor function.
 export const tourDefinitions = {
 
 
   /*
   create_Demo: [
     {
-      element: '[data-tour="bu-point"]',
-      titleKey: "tours.create_Demo.steps.1.title",
-      descriptionKey: "tours.create_Demo.steps.1.description",
-      waitFor: clickOrAdvanceIfActive('[data-tour="bu-point"]'),
+      // Highlight the point tool button.
+      element: '[data-tour="bu-point"]', 
+      
+      // Translation key for the step title.
+      titleKey: "tours.create_Demo.steps.1.title", 
+      
+      // Translation key for the step description.
+      descriptionKey: "tours.create_Demo.steps.1.description", 
+      
+      // Wait for the user to click the point tool button or advance if it's already active.
+      waitFor: clickOrAdvanceIfActive('[data-tour="bu-point"]'), 
+
+      //in this specific step clickOrAdvanceIfActive is a function that checks if the user has clicked the point tool button or if it's already active. 
+      //If either condition is met, the tour will advance to the next step.
+
+      //You will want to use clickOrAdvanceIfActive for any step that requires the user to click a button or select a tool.
+      //As it contains logic to check if the user has already completed the action, 
+      //it allows the tour to advance without requiring the user to repeat the action.
     },
+
     {
       element: "#sphereContainer",
       titleKey: "tours.create_Demo.steps.1.title",
       descriptionKey: "tours.create_Demo.steps.1.description",
+
+      //The utliity of the waitFor function is vast, and it can be used to check for a variety of conditions, 
+      //For each tour step, you can define a waitFor function that checks for the specific condition that indicates the step is complete.
       waitFor: pointCreated(),
     },
   ],
@@ -770,27 +793,59 @@ export type TourStep = {
 };
 
 
-
 // Each function below contains the logic for a specific waitFor condition.
 // The function returns a cleanup callback when it creates a listener or watcher.
 // This allows the tour engine to stop watching when the user leaves the current step.
 
-
-// Advance when a selected tool or expanded group already satisfies this step.
-function clickOrAdvanceIfActive(selector: string): WaitForFunction {
-  return (seStore, advanceTour, _highlightedElement) => {
-    // Resolve the explicit selector so a different highlighted group cannot satisfy this step.
-    const element = document.querySelector(selector);
+// Wait for the user to click the highlighted element.
+// This is a fall back if clickOrAdvanceIfActive() does not work
+function click(): WaitForFunction {
+  return (_seStore, advanceTour, element) => {
     if (!element) return;
 
+    const handleClick = () => advanceTour();
+
+    // { once: true } removes the listener after the first click.
+    element.addEventListener("click", handleClick, { once: true });
+
+    // Return a cleanup function in case the user leaves this step early.
+    return () => element.removeEventListener("click", handleClick);
+  };
+}
+
+// Use this function when a step should advance automatically if its action
+// is already complete. It can skip repetitive but necessary steps.
+// It may behave inconsistently with tool group elements.
+
+function clickOrAdvanceIfActive(selector: string): WaitForFunction {
+  return (seStore, advanceTour, _highlightedElement) => {
+
+    // Find the specific element named by this step's selector. This prevents
+    // some other highlighted or active element from satisfying the condition.
+    const element = document.querySelector(selector);
+
+    // If the target is not on the page, there is nothing to inspect or listen to.
+    if (!element) return;
+
+    // Read the element's tour identifier
+    // "bu-..." for a button,
+    // "ta-..." for a tab, or 
+    // "gr-..." for a group
     const target = element.getAttribute("data-tour") ?? "";
+
+    // A tool is selected when its "bu-" identifier matches the current action mode in the store.
     const isSelectedTool =
       target.startsWith("bu-") &&
       seStore.actionMode === target.slice("bu-".length);
+
+    // A tab is active when it has one of the active-state CSS classes.
     const isActiveTab =
       target.startsWith("ta-") &&
       (element.classList.contains("active") ||
         element.classList.contains("v-list-item--active"));
+
+    // A tool group is expanded when either the group has its active class
+    // or its expansion-panel title reports that it is expanded.
     const isExpandedGroup =
       target.startsWith("gr-") &&
       (element.classList.contains("v-expansion-panel--active") ||
@@ -798,13 +853,19 @@ function clickOrAdvanceIfActive(selector: string): WaitForFunction {
           ".v-expansion-panel-title[aria-expanded='true']",
         ) !== null);
 
+    // If the tool, tab, or group is already active, advance after the current
+    // synchronous DOM work finishes.
     if (isSelectedTool || isActiveTab || isExpandedGroup) {
       queueMicrotask(advanceTour);
       return;
     }
 
+    // Otherwise, wait for the user to click the target, then advance.
     const handleClick = () => queueMicrotask(advanceTour);
     element.addEventListener("click", handleClick, { once: true });
+
+    // Give the tour engine a cleanup function so it can remove the listener
+    // if the step ends or the tour closes before the user clicks.
     return () => element.removeEventListener("click", handleClick);
   };
 }
